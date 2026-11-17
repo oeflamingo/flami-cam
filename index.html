@@ -117,6 +117,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 #btn-recvid span{width:22px;height:22px;border-radius:50%;background:#ff3b4e;transition:border-radius .15s,width .15s,height .15s}
 #btn-recvid[aria-pressed="true"]{border-color:#ff3b4e}
 #btn-recvid[aria-pressed="true"] span{width:18px;height:18px;border-radius:4px}
+#media-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:min(560px,60vw)}
+#media-bar .pill{padding:6px 12px;font-size:.8rem;background:rgba(20,18,26,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#media-bar .pill.primary{background:var(--accent)}
+#mb-kind{font-family:var(--mono);font-size:.72rem;color:var(--fg);background:#ff7eb6;color:#1c1530;font-weight:600;padding:4px 9px;border-radius:999px}
+#drop-hint{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(15,14,19,.72);pointer-events:none}
+#drop-hint div{border:3px dashed #ff7eb6;border-radius:24px;padding:40px 48px;font-family:var(--display);font-weight:800;font-size:1.4rem;color:#fff}
 #rec-time{position:absolute;left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;
   background:rgba(0,0,0,.6);color:#fff;font-family:var(--mono);font-size:.85rem;pointer-events:none}
 #rec-time[hidden]{display:none}
@@ -169,15 +175,21 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     <div id="flash"></div>
     <div id="flt-name"></div>
     <div class="topbar">
-      <div></div>
+      <div id="media-bar" hidden>
+        <span id="mb-kind">Tu video</span>
+        <button class="pill" id="mb-play">Pausar</button>
+        <button class="pill" id="mb-restart">Desde el inicio</button>
+        <button class="pill" id="mb-sound" aria-pressed="true">Sonido: sí</button>
+        <button class="pill primary" id="mb-cam">Volver a la cámara</button>
+      </div>
       <div class="tools">
         <button class="pill pal-btn" id="btn-lpclear" hidden title="Borrar dibujo"><i style="background:radial-gradient(circle,#fff 0 30%,#ff7eb6 60%)"></i>Borrar dibujo</button>
         <button class="pill pal-btn" id="btn-pal" hidden title="Cambiar colores"><i></i>Cambiar colores</button>
         <button class="iconbtn" id="btn-mute" hidden aria-pressed="false" title="Silenciar" aria-label="Silenciar las notas">
           <svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M17 9l5 6M22 9l-5 6" style="display:none"/></svg>
         </button>
-        <button class="iconbtn" id="btn-source" title="Usar un video" aria-label="Usar un video del dispositivo">
-          <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
+        <button class="iconbtn" id="btn-source" title="Abrir foto o video" aria-label="Abrir una foto o video del computador">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>
         </button>
         <button class="iconbtn" id="btn-flip" title="Cambiar cámara" aria-label="Cambiar entre cámara frontal y trasera">
           <svg viewBox="0 0 24 24"><path d="M4 8h11a4 4 0 0 1 4 4v1"/><path d="M16 5l3 3-3 3"/><path d="M20 16H9a4 4 0 0 1-4-4v-1"/><path d="M8 19l-3-3 3-3"/></svg>
@@ -185,8 +197,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       </div>
     </div>
     <div id="notice" hidden>
-      <p id="notice-text"><b>No hay cámara disponible aquí.</b> Te muestro una escena de prueba. Puedes grabar o elegir un video y aplicarle los filtros.</p>
-      <button class="pill primary" id="btn-video">Grabar o elegir video</button>
+      <p id="notice-text"><b>No hay cámara disponible aquí.</b> Te muestro una escena de prueba. Puedes abrir una foto o video y aplicarle los filtros.</p>
+      <button class="pill primary" id="btn-video">Abrir foto o video</button>
       <button class="pill" id="btn-retry">Reintentar cámara</button>
       <button class="pill" id="btn-hide" aria-label="Ocultar aviso">Ocultar</button>
     </div>
@@ -229,7 +241,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   </div>
 </div>
 <div id="toast" role="status"></div>
-<input type="file" id="file" accept="video/*" hidden>
+<input type="file" id="file" accept="image/*,video/*" hidden>
+<div id="drop-hint" hidden><div>Suelta tu foto o video aquí</div></div>
 
 <script>
 (() => {
@@ -306,9 +319,9 @@ async function startCamera(){
     status('Abriendo cámara…');
     stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false});
     if(video.src){ URL.revokeObjectURL(video.src); video.removeAttribute('src'); }
-    video.srcObject = stream; video.loop = false;
+    video.srcObject = stream; video.loop = false; video.muted = true;
     await video.play();
-    srcKind = 'camera'; mirror = facing === 'user'; resetHistory();
+    srcKind = 'camera'; mirror = facing === 'user'; resetHistory(); syncMediaBar();
     $('#notice').hidden = true; $('#rec').classList.remove('off'); status('');
   }catch(e){
     const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
@@ -317,26 +330,66 @@ async function startCamera(){
 }
 function cameraFailed(why){
   stopStream();
-  $('#notice-text').innerHTML = '<b>' + why + '</b> Te muestro una escena de prueba. Puedes grabar o elegir un video y aplicarle los filtros.';
+  $('#notice-text').innerHTML = '<b>' + why + '</b> Te muestro una escena de prueba. Puedes abrir una foto o video y aplicarle los filtros.';
   $('#notice').hidden = false; $('#rec').classList.add('off'); status('');
-  if(srcKind !== 'file') useDemo();
+  if(srcKind !== 'file' && srcKind !== 'image') useDemo();
+  syncMediaBar();
 }
-function useDemo(){ srcKind = 'demo'; mirror = false; resetHistory(); }
+function useDemo(){ srcKind = 'demo'; mirror = false; resetHistory(); syncMediaBar(); }
+const still = new Image();
+let stillUrl = '', vidNode = null, vidGain = null, vidSound = true;
+function vidAudio(){
+  // el sonido del video pasa por WebAudio para poder grabarlo junto al efecto
+  ensureAudio();
+  if(audio && !vidNode){
+    try{ vidNode = audio.createMediaElementSource(video); vidGain = audio.createGain(); vidNode.connect(vidGain); vidGain.connect(audio.destination); }catch(e){ vidNode = null; }
+  }
+  if(vidGain) vidGain.gain.value = vidSound ? 1 : 0;
+}
 async function useFile(file){
+  if(!file) return;
+  const isImg = /^image\//.test(file.type) || /\.(jpe?g|png|gif|webp|bmp|avif|heic)$/i.test(file.name);
+  const isVid = /^video\//.test(file.type) || /\.(mp4|mov|m4v|webm|ogv|mkv)$/i.test(file.name);
+  if(!isImg && !isVid){ toast('Ese archivo no es una foto ni un video'); return; }
+  if(recorder && recorder.state === 'recording') recorder.stop();
+  if(isImg){
+    const url = URL.createObjectURL(file);
+    try{ still.src = url; await still.decode(); }
+    catch(e){ URL.revokeObjectURL(url); toast(/heic/i.test(file.name) ? 'Chrome no abre fotos HEIC: expórtala como JPG' : 'No pude abrir esa foto'); return; }
+    stopStream(); video.pause(); video.srcObject = null;
+    if(stillUrl) URL.revokeObjectURL(stillUrl); stillUrl = url;
+    srcKind = 'image'; mirror = false; resetHistory(); afterSource('Foto cargada: elige un efecto');
+    return;
+  }
   stopStream();
   video.srcObject = null;
-  if(video.src) URL.revokeObjectURL(video.src);
+  if(video.src && video.src.startsWith('blob:')) URL.revokeObjectURL(video.src);
   video.src = URL.createObjectURL(file); video.loop = true;
-  try{ await video.play(); srcKind = 'file'; mirror = false; resetHistory(); $('#notice').hidden = true; $('#rec').classList.remove('off'); toast('Video cargado'); }
-  catch(e){ toast('No pude reproducir ese video'); }
+  video.muted = false; vidAudio();
+  try{ await video.play(); }
+  catch(e){ video.muted = true; try{ await video.play(); }catch(e2){ toast('No pude reproducir ese video'); return; } }
+  srcKind = 'file'; mirror = false; resetHistory(); afterSource('Video cargado: elige un efecto');
+}
+function afterSource(msg){
+  $('#notice').hidden = true; $('#rec').classList.remove('off'); toast(msg); syncMediaBar();
+}
+function syncMediaBar(){
+  const on = srcKind === 'file' || srcKind === 'image', vid = srcKind === 'file';
+  $('#media-bar').hidden = !on;
+  $('#mb-kind').textContent = vid ? 'Tu video' : 'Tu foto';
+  ['#mb-play', '#mb-restart', '#mb-sound'].forEach(q => { $(q).hidden = !vid; });
+  $('#mb-play').textContent = video.paused ? 'Reproducir' : 'Pausar';
+  const snd = vidSound && !video.muted;
+  $('#mb-sound').textContent = snd ? 'Sonido: sí' : 'Sonido: no'; $('#mb-sound').setAttribute('aria-pressed', snd);
 }
 function srcReady(){
   if(srcKind === 'demo') return true;
+  if(srcKind === 'image') return still.complete && still.naturalWidth > 0;
   if(srcKind === 'camera' || srcKind === 'file') return video.readyState >= 2 && video.videoWidth > 0;
   return false;
 }
-function srcEl(){ return srcKind === 'demo' ? demo : video; }
-function srcSize(){ return srcKind === 'demo' ? [demo.width, demo.height] : [video.videoWidth, video.videoHeight]; }
+function srcEl(){ return srcKind === 'demo' ? demo : srcKind === 'image' ? still : video; }
+function srcSize(){ return srcKind === 'demo' ? [demo.width, demo.height] : srcKind === 'image' ? [still.naturalWidth, still.naturalHeight] : [video.videoWidth, video.videoHeight]; }
 
 /* Escena de prueba: una figura que camina frente a una pared, con una lámpara tibia */
 function drawDemo(t){
@@ -1570,6 +1623,21 @@ const pickVideo = () => $('#file').click();
 $('#btn-video').addEventListener('click', pickVideo);
 $('#btn-source').addEventListener('click', pickVideo);
 $('#file').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; if(f) useFile(f); e.target.value = ''; });
+$('#mb-cam').addEventListener('click', () => { if(recorder && recorder.state === 'recording') recorder.stop(); video.pause(); if(video.src && video.src.startsWith('blob:')){ URL.revokeObjectURL(video.src); video.removeAttribute('src'); } startCamera(); });
+$('#mb-play').addEventListener('click', () => { if(video.paused) video.play().catch(() => {}); else video.pause(); syncMediaBar(); });
+$('#mb-restart').addEventListener('click', () => { video.currentTime = 0; resetHistory(); video.play().catch(() => {}); syncMediaBar(); });
+$('#mb-sound').addEventListener('click', () => {
+  if(video.muted){ video.muted = false; vidSound = true; } else vidSound = !vidSound;
+  vidAudio(); syncMediaBar();
+});
+video.addEventListener('play', () => syncMediaBar()); video.addEventListener('pause', () => syncMediaBar());
+// arrastrar una foto o video sobre la ventana
+let dragN = 0;
+const hasFiles = e => e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+window.addEventListener('dragenter', e => { if(!hasFiles(e)) return; e.preventDefault(); dragN++; $('#drop-hint').hidden = false; });
+window.addEventListener('dragover', e => { if(!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
+window.addEventListener('dragleave', e => { if(!hasFiles(e)) return; dragN = Math.max(0, dragN - 1); if(!dragN) $('#drop-hint').hidden = true; });
+window.addEventListener('drop', e => { if(!hasFiles(e)) return; e.preventDefault(); dragN = 0; $('#drop-hint').hidden = true; const f = e.dataTransfer.files && e.dataTransfer.files[0]; if(f) useFile(f); });
 
 /* botón de silencio para Notas */
 function syncMute(){
@@ -1633,7 +1701,9 @@ async function startVideo(){
   ensureAudio();
   if(audio){
     recDest = audio.createMediaStreamDestination();
-    try{
+    if(srcKind === 'file'){
+      if(vidGain) vidGain.connect(recDest);
+    }else try{
       recMic = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}});
       audio.createMediaStreamSource(recMic).connect(recDest);
     }catch(e){ recMic = null; toast('Grabando sin micrófono'); }
@@ -1654,6 +1724,12 @@ async function startVideo(){
     }else toast('No se grabó nada');
     stopVideoCleanup();
   };
+  if(srcKind === 'file'){
+    // graba tu video entero con el efecto: parte del inicio y se detiene sola al final
+    video.loop = false; video.currentTime = 0; resetHistory(); video.play().catch(() => {});
+    video.onended = () => { if(recorder && recorder.state === 'recording') recorder.stop(); };
+    toast('Grabando tu video con el efecto hasta el final (toca de nuevo para parar antes)');
+  }
   recorder.start(500);
   recT0 = performance.now();
   try{ recPoster = view.toDataURL('image/jpeg', 0.7); }catch(e){}
@@ -1665,6 +1741,8 @@ function stopVideoCleanup(){
   clearInterval(recTimer); $('#rec-time').hidden = true;
   $('#btn-recvid').setAttribute('aria-pressed', 'false'); $('#btn-recvid').setAttribute('aria-label', 'Grabar video');
   if(recMic){ recMic.getTracks().forEach(t => t.stop()); recMic = null; }
+  if(vidGain && recDest){ try{ vidGain.disconnect(recDest); }catch(e){} }
+  if(srcKind === 'file'){ video.onended = null; video.loop = true; if(video.ended) video.play().catch(() => {}); }
   recDest = null; recorder = null;
 }
 $('#btn-recvid').addEventListener('click', () => { if(recorder && recorder.state === 'recording') recorder.stop(); else startVideo(); });
@@ -1706,7 +1784,7 @@ setFilter(filter, false);
 useDemo();
 startCamera();
 requestAnimationFrame(loop);
-window.__camara = {setFilter, snap, trTest:(a, b) => { srcText = a; dstText = b; trShown = performance.now(); }, get W(){return W}, get seg(){return segState}, xrFake(h, f, p){ xrHands = h; xrFace = f; xrPose = p; xrTH = xrTF = xrTP = 1e12; }};
+window.__camara = {setFilter, snap, useFile, get src(){return srcKind}, trTest:(a, b) => { srcText = a; dstText = b; trShown = performance.now(); }, get W(){return W}, get seg(){return segState}, xrFake(h, f, p){ xrHands = h; xrFace = f; xrPose = p; xrTH = xrTF = xrTP = 1e12; }};
 })();
 </script>
 <script>
