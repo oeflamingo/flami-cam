@@ -787,21 +787,21 @@ function syncRails(){
 }
 
 /* ---------- Content aware scale (seam carving en vivo): se quitan las "costuras" de menos detalle y la imagen se vuelve a estirar al tamaño completo ---------- */
-let casFlat = 0, casC = mk(2,2), casO = mk(2,2), casPix = null, casE = null, casM = null, casT = null, casTE = null;
-function casCarve(pix, en, w, h, n){
+// Para que se vea fluido (sobre todo con videos): las costuras se calculan aparte (en un "worker", sin trabar la pantalla)
+// sobre una grilla chica, y cada cuadro nuevo del video se dibuja al tiro con las últimas costuras listas.
+function casCarve(pix, en, w, h, n, M){
   // quita n costuras verticales; pix/en tienen stride w y se compactan hacia la izquierda en cada fila
-  if(!casM || casM.length < w*h) casM = new Float32Array(w*h);
-  const M = casM, path = new Int32Array(h);
+  const path = new Int32Array(h);
   let cw = w;
   for(let s = 0; s < n && cw > 8; s++){
     for(let x = 0; x < cw; x++) M[x] = en[x];
     for(let y = 1; y < h; y++){
-      const r = y*w, q = r - w;
+      const r = y*w, q = r - w, last = cw - 1;
+      let a = M[q], b = M[q], c = last > 0 ? M[q + 1] : a;
       for(let x = 0; x < cw; x++){
-        let m = M[q + x];
-        if(x > 0 && M[q + x - 1] < m) m = M[q + x - 1];
-        if(x < cw - 1 && M[q + x + 1] < m) m = M[q + x + 1];
+        let m = b; if(a < m) m = a; if(c < m) m = c;
         M[r + x] = en[r + x] + m;
+        a = b; b = c; c = x + 2 <= last ? M[q + x + 2] : b;
       }
     }
     let bx = 0, r = (h - 1)*w, best = Infinity;
@@ -823,53 +823,93 @@ function casCarve(pix, en, w, h, n){
   }
   return cw;
 }
-function casEnergy(pix, en, w, h){
+function casEnergy(pix, en, w, h, flat){
   for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
     const i = y*w + x, c = pix[i], l = (c & 255)*2 + ((c >> 8) & 255)*5 + ((c >> 16) & 255);
     const cx = pix[y*w + (x < w - 1 ? x + 1 : x - 1)], cy = pix[(y < h - 1 ? y + 1 : y - 1)*w + x];
     const lx = (cx & 255)*2 + ((cx >> 8) & 255)*5 + ((cx >> 16) & 255), ly = (cy & 255)*2 + ((cy >> 8) & 255)*5 + ((cy >> 16) & 255);
     const g = Math.abs(l - lx) + Math.abs(l - ly);
-    en[i] = casFlat ? Math.pow(g, casFlat) : g;
+    en[i] = flat ? Math.pow(g, flat) : g;
   }
 }
-// Las costuras se calculan en una grilla chica (rápido) y el resultado se aplica a la imagen en resolución completa (HD)
-let casF = mk(2,2), casIH = null, casIV = null, casCP = null, casOut = null;
+// calcula las dos tablas de costuras (verticales y horizontales) para una imagen chica lw x lh
+function casSeams(pix, lw, lh, nx, ny, flat){
+  const n = lw*lh, E = new Float32Array(n), M = new Float32Array(n), T = new Uint32Array(n), TE = new Float32Array(n);
+  const IH = new Int32Array(n), IV = new Int32Array(n);
+  // 1) costuras verticales → la imagen se angosta
+  for(let y = 0; y < lh; y++) for(let x = 0; x < lw; x++) IH[y*lw + x] = x;
+  casEnergy(pix, E, lw, lh, flat);
+  const cw = nx > 0 ? casCarve(IH, E, lw, lh, nx, M) : lw;
+  // 2) costuras horizontales sobre el resultado (transpuesto) → la imagen se achica de alto
+  for(let y = 0; y < lh; y++) for(let x = 0; x < cw; x++){ T[x*lh + y] = pix[y*lw + IH[y*lw + x]]; IV[x*lh + y] = y; }
+  casEnergy(T, TE, lh, cw, flat);
+  const ch = ny > 0 ? casCarve(IV, TE, lh, cw, ny, M) : lh;
+  return {IH, IV, cw, ch, lw, lh};
+}
+let casWorker = null, casBusy = false, casRes = null, casKey = '', casDrawn = -1, casC = mk(2,2), casO = mk(2,2);
+try{
+  const srcW = casCarve.toString() + '\n' + casEnergy.toString() + '\n' + casSeams.toString() +
+    '\nonmessage = e => { const d = e.data, r = casSeams(new Uint32Array(d.pix), d.lw, d.lh, d.nx, d.ny, d.flat); r.key = d.key; postMessage(r, [r.IH.buffer, r.IV.buffer]); };';
+  casWorker = new Worker(URL.createObjectURL(new Blob([srcW], {type:'text/javascript'})));
+  casWorker.onmessage = e => { casBusy = false; if(e.data.key === casKey) casRes = e.data; casDrawn = -1; };
+  casWorker.onerror = () => { casWorker = null; casBusy = false; };
+}catch(e){ casWorker = null; }
+let casF = mk(2,2), casOut = null, casScale = 1, casMs = 10;
 function cas(){
   const p = P.cas, lw = 210, lh = Math.max(16, Math.round(lw*H/W));
-  if(casC.width !== lw || casC.height !== lh){ casC.width = lw; casC.height = lh; }
-  const c = casC.getContext('2d', {willReadFrequently:true});
-  c.drawImage(ago(0), 0, 0, lw, lh);
-  const pix = new Uint32Array(c.getImageData(0, 0, lw, lh).data.buffer), n = lw*lh;
-  if(!casE || casE.length !== n){ casE = new Float32Array(n); casT = new Uint32Array(n); casTE = new Float32Array(n); casIH = new Int32Array(n); casIV = new Int32Array(n); }
-  casFlat = p.weird ? 1 - p.weird*0.075 : 0;
-  const nx = Math.round(lw*p.side*0.085), ny = Math.round(lh*p.up*0.085);
-  // 1) costuras verticales → la imagen se angosta
-  for(let y = 0; y < lh; y++) for(let x = 0; x < lw; x++) casIH[y*lw + x] = x;
-  casEnergy(pix, casE, lw, lh);
-  const cw = nx > 0 ? casCarve(casIH, casE, lw, lh, nx) : lw;
-  // 2) costuras horizontales sobre el resultado (transpuesto) → la imagen se achica de alto
-  for(let y = 0; y < lh; y++) for(let x = 0; x < cw; x++){ casT[x*lh + y] = pix[y*lw + casIH[y*lw + x]]; casIV[x*lh + y] = y; }
-  casEnergy(casT, casTE, lh, cw);
-  const ch = ny > 0 ? casCarve(casIV, casTE, lh, cw, ny) : lh;
-  // 3) remapeo en HD: cada pixel de salida busca su pixel de origen a través de las dos tablas
+  const nx = Math.round(lw*p.side*0.085), ny = Math.round(lh*p.up*0.085), flat = p.weird ? 1 - p.weird*0.075 : 0;
+  const key = [lw, lh, nx, ny, flat].join(',');
+  // al mover las barras se descartan las costuras viejas (no sirven para el nuevo tamaño)
+  if(key !== casKey){ casKey = key; casRes = null; casDrawn = -1; }
+  // pide costuras nuevas para el cuadro más reciente (si el worker está libre)
+  if((!casBusy || !casWorker) && casDrawn !== lastCap){
+    if(casC.width !== lw || casC.height !== lh){ casC.width = lw; casC.height = lh; }
+    const c = casC.getContext('2d', {willReadFrequently:true});
+    c.drawImage(ago(0), 0, 0, lw, lh);
+    const pix = new Uint32Array(c.getImageData(0, 0, lw, lh).data.buffer);
+    if(casWorker){ casBusy = true; casWorker.postMessage({pix:pix.buffer, lw, lh, nx, ny, flat, key}, [pix.buffer]); }
+    else { const r = casSeams(pix, lw, lh, nx, ny, flat); r.key = key; casRes = r; }
+  }
+  // solo se vuelve a dibujar cuando hay un cuadro nuevo del video o costuras nuevas
+  if(!casRes || casDrawn === lastCap) return;
+  casDrawn = lastCap;
+  const {IH, IV, cw, ch} = casRes;
+  // 3) remapeo en HD: cada pixel de salida busca su pixel de origen a través de las dos tablas.
+  // Si el teléfono no alcanza, se baja un poco la resolución de este paso para que no se trabe.
+  const t0 = performance.now(), W0 = W, H0 = H;
+  { const W = Math.max(2, Math.round(W0*casScale)), H = Math.max(2, Math.round(H0*casScale));
   if(casF.width !== W || casF.height !== H){ casF.width = W; casF.height = H; casO.width = W; casO.height = H; casOut = null; }
-  const fx = casF.getContext('2d', {willReadFrequently:true}); fx.drawImage(ago(0), 0, 0);
+  const fx = casF.getContext('2d', {willReadFrequently:true}); fx.drawImage(ago(0), 0, 0, W, H);
   const src = new Uint32Array(fx.getImageData(0, 0, W, H).data.buffer);
   if(!casOut) casOut = new ImageData(W, H);
   const out = new Uint32Array(casOut.data.buffer), kx = cw/W, ky = ch/H, sx = W/lw, sy = H/lh;
+  const colX = casCol(W, kx), colF = casColF;
   for(let Y = 0; Y < H; Y++){
     const yy = Y*ky, y2 = yy | 0, fy = yy - y2, row = Y*W;
     for(let X = 0; X < W; X++){
-      const xx = X*kx, x2 = xx | 0;
-      const ly = casIV[x2*lh + y2], lx = casIH[ly*lw + x2];
-      let Ys = ((ly + fy)*sy) | 0, Xs = ((lx + xx - x2)*sx) | 0;
+      const x2 = colX[X];
+      const ly = IV[x2*lh + y2], lx = IH[ly*lw + x2];
+      let Ys = ((ly + fy)*sy) | 0, Xs = ((lx + colF[X])*sx) | 0;
       if(Ys >= H) Ys = H - 1; if(Xs >= W) Xs = W - 1;
       out[row + X] = src[Ys*W + Xs];
     }
   }
-  casO.getContext('2d').putImageData(casOut, 0, 0);
-  vctx.save(); vctx.filter = 'saturate(1.3) contrast(1.08)'; vctx.drawImage(casO, 0, 0); vctx.restore();
+  casO.getContext('2d').putImageData(casOut, 0, 0); }
+  vctx.save(); vctx.filter = 'saturate(1.3) contrast(1.08)'; vctx.drawImage(casO, 0, 0, W0, H0); vctx.restore();
+  const ms = performance.now() - t0; casMs = casMs*0.85 + ms*0.15;
+  if(casMs > 20 && casScale > 0.5){ casScale = Math.max(0.5, casScale - 0.125); casMs = 14; }
+  else if(casMs < 7 && casScale < 1){ casScale = Math.min(1, casScale + 0.125); casMs = 12; }
   syncRails();
+}
+// columnas precalculadas para el remapeo (se recalculan solo si cambia el tamaño)
+let casColX = null, casColF = null, casColK = '';
+function casCol(w, kx){
+  const k = w + ',' + kx;
+  if(k !== casColK){
+    casColK = k; casColX = new Int32Array(w); casColF = new Float32Array(w);
+    for(let X = 0; X < w; X++){ const xx = X*kx; casColX[X] = xx | 0; casColF[X] = xx - (xx | 0); }
+  }
+  return casColX;
 }
 /* ---------- Luz (light painting): larga exposición en vivo. Lo que brilla (linterna, flash del celular) deja una estela que se acumula ---------- */
 let lpIn = mk(2,2), lpAcc = mk(2,2), lpHue = 0, lpPrev = null, lpBg = null;
@@ -1004,12 +1044,18 @@ function lpRender(p, u){
 }
 
 /* ---------- bucle principal ---------- */
+const hasVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
+let vfNew = true;
+if(hasVFC){ const onVF = () => { vfNew = true; video.requestVideoFrameCallback(onVF); }; video.requestVideoFrameCallback(onVF); }
 function loop(t){
   requestAnimationFrame(loop);
   if(srcKind === 'demo') drawDemo(t);
   if(!srcReady()) return;
   const [sw, sh] = srcSize(); ensureSize(sw, sh);
-  if(t - lastCap >= 31 || count === 0){
+  // con videos se toma cada cuadro nuevo apenas llega (sin repetir ni saltarse cuadros), así se ve fluido
+  const vf = srcKind === 'file' && hasVFC;
+  if(vf ? (vfNew && t - lastCap >= 24) || count === 0 || (t - lastCap >= 250 && !video.paused) : (t - lastCap >= 31 || count === 0)){
+    vfNew = false;
     lastCap = t; capture();
     if((filter === 'echo' || (filter === 'offset' && !P.offset.bg)) && segState === 'ready' && segmenter) segment();
   }
@@ -1041,6 +1087,7 @@ function setFilter(id, announce = true){
   if(id === 'echo' || id === 'offset') ensureSegmenter();
   if(id === 'echo'){ ghosts = []; lastGhost = -1e9; }
   if(id === 'light') lpClear();
+  if(id === 'cas') casDrawn = -1;
   buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
   if(announce){ const el = $('#flt-name'); el.textContent = FILTERS.find(f => f.id === id).name; el.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => el.classList.remove('on'), 700); }
   try{ localStorage.setItem('camara-rara-filtro', id); }catch(e){}
