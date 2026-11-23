@@ -1,5 +1,5 @@
 // FLAMI CAM: guarda la app para que abra rápido y funcione sin internet (después de la primera vez).
-const VERSION = 'flami-cam-v3';
+const VERSION = 'flami-cam-v4';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -15,7 +15,8 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (req.mode === 'navigate' || url.origin === location.origin) {
     // La app: primero internet (para tener siempre la última versión), si no hay, la guardada.
-    e.respondWith(fetch(req).then(res => {
+    // cache:'no-cache' pide siempre la versión nueva a internet (sin la copia guardada del navegador).
+    e.respondWith(fetch(req, {cache:'no-cache'}).then(res => {
       const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); return res;
     }).catch(() => caches.match(req).then(r => r || caches.match('index.html'))));
     return;
