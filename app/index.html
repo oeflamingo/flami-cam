@@ -64,6 +64,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .pill{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 14px;cursor:pointer;font-size:.85rem;white-space:nowrap}
 .pal-btn{display:inline-flex;align-items:center;gap:8px;height:42px;background:rgba(20,18,26,.55);color:#fff;border-color:rgba(255,255,255,.18);backdrop-filter:blur(8px)}
 .pal-btn[hidden]{display:none}
+#btn-dm{background:#ff3fa4;border-color:#ff3fa4;color:#fff;font-weight:800;letter-spacing:.06em;padding:0 22px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+#btn-dm.on{background:#fff;color:#ff3fa4;box-shadow:0 0 0 3px #ff3fa4,0 0 18px #ff3fa4}
 .pal-btn i{width:18px;height:18px;border-radius:50%;display:block;border:1px solid rgba(255,255,255,.4)}
 .pill.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 #status{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:12px;font-family:var(--mono);font-size:.72rem;
@@ -208,6 +210,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       </div>
       <div class="tools">
         <button class="pill pal-btn" id="btn-lpclear" hidden title="Borrar dibujo"><i style="background:radial-gradient(circle,#fff 0 30%,#ff7eb6 60%)"></i>Borrar dibujo</button>
+        <button class="pill pal-btn" id="btn-dm" hidden title="Mantén apretado para mezclar los cuadros (un toque lo deja pegado)">MEZCLAR</button>
         <button class="pill pal-btn" id="btn-pal" hidden title="Cambiar colores"><i></i>Cambiar colores</button>
         <button class="iconbtn" id="btn-source" title="Abrir foto o video" aria-label="Abrir una foto o video del computador">
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>
@@ -303,6 +306,7 @@ const FILTERS = [
   {id:'stretch', name:'Estirado',         sw:'radial-gradient(ellipse 22% 46% at 50% 45%,#ffb3d1 0 55%,#ff7eb6 56% 70%,#2a2333 71%)'},
   {id:'cas',     name:'Content aware',    sw:'linear-gradient(90deg,#2a2333 0 18%,#f3c9a8 18% 30%,#2a2333 30% 38%,#7fb3d2 38% 70%,#f3c9a8 70% 80%,#2a2333 80%)'},
   {id:'light',   name:'Luz',              sw:'radial-gradient(circle at 30% 70%,#fff 0 6%,transparent 7%),conic-gradient(from 200deg at 50% 50%,#ff3fa4,#ffd23f,#3fffb2,#3fa4ff,#ff3fa4)', glyph:''},
+  {id:'dm',      name:'Datamosh',         sw:'linear-gradient(180deg,#ff3fa4 0 20%,#3fd2ff 20% 34%,#2a2333 34% 48%,#ffd23f 48% 52%,#2a2333 52% 70%,#3fffb2 70% 78%,#ff3fa4 78%)'},
   {id:'hockney', name:'Collage',          sw:'conic-gradient(from 20deg,#efebe3 0 25%,#8a8173 0 40%,#d9d2c4 0 62%,#4c5560 0 78%,#efebe3 0)'},
 ];
 // Fase de prueba (solo la app del celular): window.FLAMI_SOLO lista los efectos que se muestran.
@@ -317,6 +321,7 @@ const PARAMS = {
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
   light:   [{k:'clear',label:'Borrar dibujo',button:true,act:() => lpClear()},{k:'only',label:'Solo luz que se mueve',toggle:true,v:1},{k:'marker',label:'Mostrar luz detectada',toggle:true,v:1},{k:'thr',label:'Exigencia de luz',min:1,max:10,v:7},{k:'fade',label:'Se borra solo',min:0,max:10,v:0},{k:'bg',label:'Fondo',min:0,max:10,v:7},{k:'glow',label:'Resplandor',min:0,max:10,v:5},{k:'rainbow',label:'Arcoíris',toggle:true,v:0}],
   hockney: [{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
+  dm:      [{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'drag',label:'Arrastre',min:0,max:10,v:4},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'auto',label:'Refresco solo (seg.)',min:0,max:10,v:0}],
   normal:  []
 };
 const P = {thermal:{pal:'iron'}}; for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
@@ -513,6 +518,7 @@ function ensureSegmenter(){
 }
 function refreshStatus(){
   if(filter === 'light') return status('Apunta el flash del celular a la cámara y dibuja');
+  if(filter === 'dm') return status(dmActive() ? '' : 'Mantén apretado MEZCLAR y muévete (un toque lo deja pegado)');
   if(filter === 'offset' && !P.offset.bg){
     if(segState === 'loading') return status('Cargando recorte de personas…');
     if(segState === 'failed') return status('Sin recorte de personas: se aplica a toda la imagen');
@@ -582,6 +588,7 @@ function togglePal(){
 }
 function syncPal(){
   const lc = document.getElementById('btn-lpclear'); if(lc) lc.hidden = filter !== 'light';
+  const dmb = document.getElementById('btn-dm'); if(dmb) dmb.hidden = filter !== 'dm';
   const b = document.getElementById('btn-pal'); if(!b) return;
   b.hidden = filter !== 'thermal';
   b.querySelector('i').style.background = P.thermal.pal === 'rainbow'
@@ -1044,6 +1051,95 @@ function lpRender(p, u){
 
 /* ---------- bucle principal ---------- */
 const hasVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
+
+/* ---------- Datamosh: se imita el "error" de compresión de video. Se estima cómo se mueve cada bloque
+   entre un cuadro y el siguiente (vectores de movimiento) y ese movimiento se aplica sobre una imagen vieja
+   que NO se refresca (el "cuadro clave"), así los píxeles se arrastran y la imagen se derrite.
+   El análisis se hace a baja resolución (~192 px) para que vaya fluido en el celular. ---------- */
+let dmOn = false, dmHeld = false, dmDownT = 0, dmWasOn = false;
+let dmBuf = mk(2,2), dmTmp = mk(2,2), dmA = mk(2,2), dmAx = dmA.getContext('2d', {willReadFrequently:true});
+let dmPrev = null, dmCur = null, dmMv = null, dmAW = 0, dmAH = 0, dmBS = 0, dmLastCap = -1, dmFrames = 0, dmNeedKey = true, dmKeyT = 0, dmWas = false;
+const dmActive = () => filter === 'dm' && (dmOn || dmHeld);
+function dmSync(){
+  const b = document.getElementById('btn-dm'); if(!b) return;
+  const a = dmOn || dmHeld; b.classList.toggle('on', a); b.setAttribute('aria-pressed', a);
+  b.textContent = dmOn ? 'SOLTAR' : 'MEZCLAR';
+  refreshStatus();
+}
+function dmSad(x0, y0, bw, bh, dx, dy, aw, ah, lim){
+  if(x0 + dx < 0 || y0 + dy < 0 || x0 + dx + bw > aw || y0 + dy + bh > ah) return 1e9;
+  const cur = dmCur, prev = dmPrev; let s = 0;
+  for(let y = 0; y < bh; y++){
+    let i = (y0 + y)*aw + x0, j = i + dy*aw + dx;
+    for(let x = 0; x < bw; x++){ const d = cur[i + x] - prev[j + x]; s += d < 0 ? -d : d; }
+    if(s >= lim) return s;
+  }
+  return s;
+}
+function datamosh(t){
+  const p = P.dm;
+  if(dmBuf.width !== W || dmBuf.height !== H){ dmBuf.width = dmTmp.width = W; dmBuf.height = dmTmp.height = H; dmNeedKey = true; }
+  const sc = 192/Math.max(W, H), aw = Math.max(16, Math.round(W*sc)), ah = Math.max(16, Math.round(H*sc));
+  const bs = [4,6,8,10,12,16][p.blk - 1] || 8, nx = Math.ceil(aw/bs), ny = Math.ceil(ah/bs);
+  if(aw !== dmAW || ah !== dmAH){ dmAW = aw; dmAH = ah; dmA.width = aw; dmA.height = ah; dmPrev = new Uint8Array(aw*ah); dmCur = new Uint8Array(aw*ah); dmFrames = 0; dmLastCap = -1; }
+  if(bs !== dmBS || !dmMv || dmMv.length !== nx*ny*2){ dmBS = bs; dmMv = new Float32Array(nx*ny*2); }
+  const act = dmActive();
+  if(act && !dmWas) dmNeedKey = true;               // al apretar MEZCLAR se toma el cuadro clave
+  if(act !== dmWas){ dmWas = act; dmSync(); }
+  if(count === 1) dmFrames = 0;                      // video reiniciado
+  // cuadro nuevo de la cámara/video → se pasa a gris en baja resolución
+  let fresh = false;
+  if(lastCap !== dmLastCap){
+    dmLastCap = lastCap; fresh = true;
+    dmAx.drawImage(ago(0), 0, 0, aw, ah);
+    const d = dmAx.getImageData(0, 0, aw, ah).data, sw = dmPrev; dmPrev = dmCur; dmCur = sw;
+    for(let i = 0, j = 0; i < aw*ah; i++, j += 4) dmCur[i] = (d[j]*77 + d[j+1]*150 + d[j+2]*29) >> 8;
+    dmFrames++;
+  }
+  if(!act){ vctx.drawImage(ago(0), 0, 0); return; }
+  const bx = dmBuf.getContext('2d');
+  const auto = p.auto > 0 && t - dmKeyT > p.auto*1000;
+  if(dmNeedKey || auto){
+    dmNeedKey = false; dmKeyT = t; dmMv.fill(0);
+    bx.globalAlpha = 1; bx.drawImage(ago(0), 0, 0);
+  }else if(fresh && dmFrames >= 2){
+    const mult = 0.4 + p.mult*0.26, keep = p.drag/10*0.93, maxV = bs*3, k = W/aw, ky = H/ah;
+    // 1) vectores de movimiento por bloque (búsqueda en 3 pasos, ±7 px)
+    for(let j = 0; j < ny; j++) for(let i = 0; i < nx; i++){
+      const x0 = i*bs, y0 = j*bs, bw = Math.min(bs, aw - x0), bh = Math.min(bs, ah - y0), n = bw*bh;
+      const s0 = dmSad(x0, y0, bw, bh, 0, 0, aw, ah, 1e9);
+      let cx = 0, cy = 0, best = s0;
+      for(let st = 4; st >= 1; st >>= 1){
+        let bx2 = cx, by2 = cy;
+        for(let dy = -st; dy <= st; dy += st) for(let dx = -st; dx <= st; dx += st){
+          if(!dx && !dy) continue;
+          const s = dmSad(x0, y0, bw, bh, cx + dx, cy + dy, aw, ah, best);
+          if(s < best){ best = s; bx2 = cx + dx; by2 = cy + dy; }
+        }
+        cx = bx2; cy = by2;
+      }
+      // el ruido de la cámara no cuenta como movimiento
+      if(s0 < n*5 || best > s0*0.8){ cx = 0; cy = 0; }
+      const m = (j*nx + i)*2;
+      let vx = dmMv[m]*keep + cx*mult, vy = dmMv[m+1]*keep + cy*mult;
+      const len = Math.hypot(vx, vy); if(len > maxV){ vx *= maxV/len; vy *= maxV/len; }
+      dmMv[m] = vx; dmMv[m+1] = vy;
+    }
+    // 2) se mueven los bloques de la imagen vieja según esos vectores (sin refrescar)
+    const tx = dmTmp.getContext('2d'); tx.drawImage(dmBuf, 0, 0);
+    bx.globalAlpha = 1;
+    for(let j = 0; j < ny; j++) for(let i = 0; i < nx; i++){
+      const m = (j*nx + i)*2, vx = dmMv[m], vy = dmMv[m+1];
+      if(Math.abs(vx) < 0.05 && Math.abs(vy) < 0.05) continue;
+      const dx = i*bs*k, dy = j*bs*ky, w = Math.min(bs*k, W - dx), h = Math.min(bs*ky, H - dy);
+      const sx = clamp(dx + vx*k, 0, W - w), sy = clamp(dy + vy*ky, 0, H - h);
+      bx.drawImage(dmTmp, sx, sy, w, h, dx, dy, w, h);
+    }
+    // 3) un poquito de la imagen real se filtra (opcional) para que se vaya recuperando
+    if(p.leak > 0){ bx.globalAlpha = p.leak*0.012; bx.drawImage(ago(0), 0, 0); bx.globalAlpha = 1; }
+  }
+  vctx.drawImage(dmBuf, 0, 0);
+}
 let vfNew = true;
 if(hasVFC){ const onVF = () => { vfNew = true; video.requestVideoFrameCallback(onVF); }; video.requestVideoFrameCallback(onVF); }
 function loop(t){
@@ -1066,6 +1162,7 @@ function loop(t){
     case 'cas': cas(); break;
     case 'light': lightPaint(t); break;
     case 'hockney': hockney(t); break;
+    case 'dm': datamosh(t); break;
     default: vctx.drawImage(ago(0), 0, 0);
   }
 }
@@ -1087,6 +1184,7 @@ function setFilter(id, announce = true){
   if(id === 'echo'){ ghosts = []; lastGhost = -1e9; }
   if(id === 'light') lpClear();
   if(id === 'cas') casDrawn = -1;
+  if(id !== 'dm'){ dmOn = false; dmHeld = false; }
   buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
   if(announce){ const el = $('#flt-name'); el.textContent = FILTERS.find(f => f.id === id).name; el.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => el.classList.remove('on'), 700); }
   try{ localStorage.setItem('camara-rara-filtro', id); }catch(e){}
@@ -1102,7 +1200,7 @@ function buildParams(){
     if(p.button){
       wrap.className = 'param toggle';
       const b = document.createElement('button'); b.className = 'pill'; b.id = id; b.textContent = p.label;
-      b.addEventListener('click', () => { shuffleTiles(); });
+      b.addEventListener('click', () => { if(p.act) p.act(); else shuffleTiles(); });
       wrap.appendChild(b);
     }else if(p.options){
       wrap.className = 'param';
@@ -1164,6 +1262,24 @@ window.addEventListener('dragleave', e => { if(!hasFiles(e)) return; dragN = Mat
 window.addEventListener('drop', e => { if(!hasFiles(e)) return; e.preventDefault(); dragN = 0; $('#drop-hint').hidden = true; const f = e.dataTransfer.files && e.dataTransfer.files[0]; if(f) useFile(f); });
 
 $('#btn-pal').addEventListener('click', togglePal);
+
+// MEZCLAR: mantener apretado = mezcla mientras lo apretás; un toque corto = queda pegado (otro toque lo suelta)
+{
+  const b = $('#btn-dm');
+  const down = e => { e.preventDefault(); if(dmHeld) return; dmWasOn = dmOn; dmHeld = true; dmDownT = performance.now(); if(dmWasOn) dmOn = false, dmHeld = false; dmSync(); };
+  const up = () => {
+    if(dmWasOn){ dmWasOn = false; dmSync(); return; }      // estaba pegado: el toque lo suelta
+    if(!dmHeld) return;
+    dmHeld = false;
+    if(performance.now() - dmDownT < 280) dmOn = true;      // toque corto: queda pegado
+    dmSync();
+  };
+  b.addEventListener('pointerdown', down);
+  for(const ev of ['pointerup', 'pointercancel']) b.addEventListener(ev, up);
+  b.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => { if((e.key === 'm' || e.key === 'M') && filter === 'dm' && !e.repeat && !(e.target.closest && e.target.closest('input'))){ dmHeld = true; dmSync(); } });
+  document.addEventListener('keyup', e => { if((e.key === 'm' || e.key === 'M') && dmHeld){ dmHeld = false; dmSync(); } });
+}
 $('#btn-lpclear').addEventListener('click', () => { lpClear(); toast('Dibujo borrado'); });
 for(const k of ['up', 'side']) $('#rail-' + k).addEventListener('input', e => {
   const f = filter === 'cas' ? 'cas' : 'stretch';
