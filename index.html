@@ -290,19 +290,51 @@ let filter = 'thermal';
 const video = document.createElement('video');
 video.muted = true; video.playsInline = true; video.setAttribute('playsinline',''); video.setAttribute('muted','');
 let srcKind = 'none', facing = 'user', mirror = false, stream = null;
+try{ if(localStorage.getItem('flami-facing') === 'environment') facing = 'environment'; }catch(e){}
 const demo = mk(640, 480), dctx = demo.getContext('2d');
 
+// Abre la cámara pedida (frontal 'user' o trasera 'environment'). En iPhone a veces se ignora
+// el pedido suave, así que se pide primero exacto, luego suave, y si sale la equivocada se busca por nombre.
+const camSize = {width:{ideal:1280},height:{ideal:720}};
+function camIsFront(label){ return /front|frontal|user|facetime|delantera|selfie/i.test(label || ''); }
+function trackFacing(s){
+  const t = s && s.getVideoTracks()[0]; if(!t) return '';
+  const st = t.getSettings ? t.getSettings() : {};
+  if(st.facingMode) return st.facingMode;
+  return t.label ? (camIsFront(t.label) ? 'user' : 'environment') : '';
+}
+async function openCam(want){
+  const gum = v => navigator.mediaDevices.getUserMedia({video:v, audio:false});
+  let s = null;
+  try{ s = await gum({...camSize, facingMode:{exact:want}}); }
+  catch(e){ if(e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) throw e; }
+  if(!s) s = await gum({...camSize, facingMode:want});
+  const got = trackFacing(s);
+  if(got && got !== want){
+    // salió la cámara que no era: buscar la otra por su nombre
+    let devs = []; try{ devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); }catch(e){}
+    const cur = s.getVideoTracks()[0].getSettings().deviceId;
+    const pick = devs.find(d => d.deviceId !== cur && (want === 'user') === camIsFront(d.label)) || devs.find(d => d.deviceId && d.deviceId !== cur);
+    if(pick){
+      s.getTracks().forEach(t => t.stop());
+      try{ s = await gum({...camSize, deviceId:{exact:pick.deviceId}}); }
+      catch(e){ s = await gum({...camSize, facingMode:want}); }
+    }
+  }
+  return s;
+}
 function stopStream(){ if(stream){ stream.getTracks().forEach(t => t.stop()); stream = null; } }
 async function startCamera(){
   stopStream();
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ return cameraFailed('Este navegador no da acceso a la cámara.'); }
   try{
     status('Abriendo cámara…');
-    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false});
+    stream = await openCam(facing);
     if(video.src){ URL.revokeObjectURL(video.src); video.removeAttribute('src'); }
-    video.srcObject = stream; video.loop = false; video.muted = true;
+    video.srcObject = null; video.srcObject = stream; video.loop = false; video.muted = true;
     await video.play();
     srcKind = 'camera'; mirror = facing === 'user'; resetHistory(); syncMediaBar();
+    try{ localStorage.setItem('flami-facing', facing); }catch(e){}
     $('#notice').hidden = true; $('#rec').classList.remove('off'); status('');
   }catch(e){
     const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
@@ -1018,7 +1050,14 @@ document.addEventListener('keydown', e => {
   if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); snap(); }
 });
 
-$('#btn-flip').addEventListener('click', () => { facing = facing === 'user' ? 'environment' : 'user'; startCamera(); });
+let flipping = false;
+$('#btn-flip').addEventListener('click', async () => {
+  if(flipping) return; flipping = true;
+  if(srcKind === 'camera' || srcKind === 'none' || srcKind === 'demo') facing = facing === 'user' ? 'environment' : 'user';
+  await startCamera();
+  if(srcKind === 'camera') toast(facing === 'user' ? 'Cámara frontal' : 'Cámara trasera');
+  flipping = false;
+});
 $('#btn-retry').addEventListener('click', () => startCamera());
 $('#btn-hide').addEventListener('click', () => { $('#notice').hidden = true; });
 const pickVideo = () => $('#file').click();
