@@ -321,7 +321,7 @@ const PARAMS = {
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
   light:   [{k:'clear',label:'Borrar dibujo',button:true,act:() => lpClear()},{k:'only',label:'Solo luz que se mueve',toggle:true,v:1},{k:'marker',label:'Mostrar luz detectada',toggle:true,v:1},{k:'thr',label:'Exigencia de luz',min:1,max:10,v:7},{k:'fade',label:'Se borra solo',min:0,max:10,v:0},{k:'bg',label:'Fondo',min:0,max:10,v:7},{k:'glow',label:'Resplandor',min:0,max:10,v:5},{k:'rainbow',label:'Arcoíris',toggle:true,v:0}],
   hockney: [{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
-  dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:6},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:3},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:8},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:4},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:0}],
+  dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:8},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:5},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:7},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:1}],
   normal:  []
 };
 const P = {thermal:{pal:'iron'}}; for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
@@ -1248,6 +1248,7 @@ function setFilter(id, announce = true){
   if(id === 'light') lpClear();
   if(id === 'cas') casDrawn = -1;
   if(id !== 'dm'){ dmOn = false; dmHeld = false; }
+  if(id === 'dm') for(const q of PARAMS.dm) if(!q.button) P.dm[q.k] = q.v;   // al entrar, siempre parte con la configuración principal
   buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
   if(announce){ const el = $('#flt-name'); el.textContent = FILTERS.find(f => f.id === id).name; el.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => el.classList.remove('on'), 700); }
   try{ localStorage.setItem('camara-rara-filtro', id); }catch(e){}
