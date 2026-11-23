@@ -68,11 +68,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .pill.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 #status{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:12px;font-family:var(--mono);font-size:.72rem;
   background:rgba(0,0,0,.6);padding:5px 9px;border-radius:6px;color:var(--fg);letter-spacing:.02em}
-#tr-langs{position:absolute;left:50%;top:64px;transform:translateX(-50%);display:flex;gap:6px;padding:5px;border-radius:999px;
-  background:rgba(20,18,26,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.16)}
-.trl{border:0;background:transparent;color:var(--fg);border-radius:999px;padding:10px 18px;font-size:1rem;cursor:pointer;display:flex;gap:8px;align-items:center}
-.trl b{font-family:var(--mono);font-size:.8rem;opacity:.8}
-.trl[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .rail{position:absolute;display:flex;align-items:center;gap:8px;padding:10px;border-radius:999px;background:rgba(20,18,26,.6);
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.16);color:#fff;font-size:1.1rem}
 .rail input{accent-color:#ff7eb6;cursor:pointer;margin:0}
@@ -185,9 +180,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <div class="tools">
         <button class="pill pal-btn" id="btn-lpclear" hidden title="Borrar dibujo"><i style="background:radial-gradient(circle,#fff 0 30%,#ff7eb6 60%)"></i>Borrar dibujo</button>
         <button class="pill pal-btn" id="btn-pal" hidden title="Cambiar colores"><i></i>Cambiar colores</button>
-        <button class="iconbtn" id="btn-mute" hidden aria-pressed="false" title="Silenciar" aria-label="Silenciar las notas">
-          <svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M17 9l5 6M22 9l-5 6" style="display:none"/></svg>
-        </button>
         <button class="iconbtn" id="btn-source" title="Abrir foto o video" aria-label="Abrir una foto o video del computador">
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>
         </button>
@@ -208,10 +200,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <label class="rail rail-h" title="Estirar a los lados"><span>↔</span><input type="range" id="rail-side" min="0" max="10" step="0.1" value="0" aria-label="Estirar a los lados"></label>
     </div>
     <div id="rec-time" hidden><i></i><span>00:00</span></div>
-    <div id="tr-langs" hidden role="group" aria-label="Idioma de la traducción">
-      <button class="trl" data-lang="en" aria-pressed="false"><b>EN</b> Inglés</button>
-      <button class="trl" data-lang="ar" aria-pressed="false"><b>ع</b> Árabe</button>
-    </div>
   </div>
 
   <div class="console">
@@ -280,29 +268,22 @@ const FILTERS = [
   {id:'thermal', name:'Térmica',          sw:'linear-gradient(135deg,#0b0420,#6e0f97 25%,#ef5a1c 45%,#fde14f 50%,#14d046 62%,#00c3ff 80%,#1530ff)'},
   {id:'offset',  name:'Desfase',          sw:'radial-gradient(circle at 40% 42%,#00a6d6cc 0 30%,transparent 31%),radial-gradient(circle at 58% 46%,#e2007acc 0 30%,transparent 31%),radial-gradient(circle at 48% 60%,#ffd800cc 0 30%,#f4efe4 31%)'},
   {id:'echo',    name:'Eco',              sw:'radial-gradient(circle at 30% 50%,#3a4fd8 0 22%,transparent 23%),radial-gradient(circle at 50% 50%,#3a4fd8aa 0 22%,transparent 23%),radial-gradient(circle at 70% 50%,#3a4fd855 0 22%,#e9e6df 23%)'},
-  {id:'notes',   name:'Notas',            sw:'radial-gradient(circle at 50% 50%,#fff 0 60%,#ddd 100%)', glyph:'♫'},
-  {id:'translate', name:'Traductor',      sw:'linear-gradient(135deg,#f2eef8 0 50%,#cdbbff 50%)', glyph:'文'},
-  {id:'xray',    name:'Rayos X',          sw:'radial-gradient(ellipse 30% 40% at 50% 45%,#f2fbff 0 40%,#7fb7da 55%,#123247 80%,#020a12)'},
   {id:'stretch', name:'Estirado',         sw:'radial-gradient(ellipse 22% 46% at 50% 45%,#ffb3d1 0 55%,#ff7eb6 56% 70%,#2a2333 71%)'},
   {id:'cas',     name:'Content aware',    sw:'linear-gradient(90deg,#2a2333 0 18%,#f3c9a8 18% 30%,#2a2333 30% 38%,#7fb3d2 38% 70%,#f3c9a8 70% 80%,#2a2333 80%)'},
   {id:'light',   name:'Luz',              sw:'radial-gradient(circle at 30% 70%,#fff 0 6%,transparent 7%),conic-gradient(from 200deg at 50% 50%,#ff3fa4,#ffd23f,#3fffb2,#3fa4ff,#ff3fa4)', glyph:''},
   {id:'hockney', name:'Collage',          sw:'conic-gradient(from 20deg,#efebe3 0 25%,#8a8173 0 40%,#d9d2c4 0 62%,#4c5560 0 78%,#efebe3 0)'},
-
 ];
 const PARAMS = {
   thermal: [{k:'pal',label:'Cambiar colores',button:true,act:() => togglePal()},{k:'detail',label:'Detalle',min:1,max:10,v:5},{k:'soft',label:'Suavizado',min:0,max:6,v:1},{k:'scale',label:'Escala °C',toggle:true,v:1}],
   offset:  [{k:'reg',label:'Registro',min:1,max:20,v:6},{k:'levels',label:'Tonos',min:2,max:6,v:3},{k:'black',label:'Negro',min:0,max:10,v:5},{k:'bright',label:'Brillo',min:40,max:120,v:85},{k:'random',label:'Movimiento',toggle:true,v:1},{k:'bg',label:'Fondo también',toggle:true,v:0}],
-  notes:   [{k:'sens',label:'Sensibilidad',min:1,max:10,v:6},{k:'size',label:'Tamaño',min:1,max:10,v:5},{k:'ambient',label:'Notas de fondo',toggle:true,v:1},{k:'fingers',label:'Dedos',toggle:true,v:1},{k:'mouth',label:'Boca',toggle:true,v:1},{k:'sound',label:'Sonido',toggle:true,v:1}],
-  translate: [{k:'voice',label:'Voz',toggle:true,v:1},{k:'gate',label:'Solo mi voz',toggle:true,v:1},{k:'size',label:'Texto',min:1,max:10,v:5}],
   echo:    [{k:'copies',label:'Copias',min:2,max:8,v:5},{k:'spacing',label:'Lentitud',min:1,max:10,v:6}],
-  xray:    [{k:'bones',label:'Huesos de las manos',toggle:true,v:1},{k:'contrast',label:'Detalle',min:1,max:10,v:6},{k:'glow',label:'Resplandor',min:0,max:10,v:3}],
   stretch: [{k:'up',label:'Alto (estirar / aplastar)',min:-10,max:10,v:5},{k:'side',label:'Ancho (estirar / aplastar)',min:-10,max:10,v:0}],
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
   light:   [{k:'clear',label:'Borrar dibujo',button:true,act:() => lpClear()},{k:'only',label:'Solo luz que se mueve',toggle:true,v:1},{k:'marker',label:'Mostrar luz detectada',toggle:true,v:1},{k:'thr',label:'Exigencia de luz',min:1,max:10,v:7},{k:'fade',label:'Se borra solo',min:0,max:10,v:0},{k:'bg',label:'Fondo',min:0,max:10,v:7},{k:'glow',label:'Resplandor',min:0,max:10,v:5},{k:'rainbow',label:'Arcoíris',toggle:true,v:0}],
   hockney: [{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
   normal:  []
 };
-const P = {translate:{lang:'ar'}, thermal:{pal:'iron'}}; for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
+const P = {thermal:{pal:'iron'}}; for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
 let filter = 'thermal';
 
 /* ---------- fuente: cámara, video o demo ---------- */
@@ -463,14 +444,7 @@ function ensureSegmenter(){
     .catch(e => { console.warn(e); segState = 'failed'; refreshStatus(); });
 }
 function refreshStatus(){
-  if(filter === 'translate') return status(trStatus);
-  if(filter === 'xray') return status(xrStatus());
   if(filter === 'light') return status('Apunta el flash del celular a la cámara y dibuja');
-  if(filter === 'notes'){
-    if(nState === 'loading') return status('Cargando detector de manos y boca…');
-    if(nState === 'failed') return status('No cargó el detector de manos y boca: suenan con cualquier movimiento');
-    if(nState === 'ready') return status('Mueve los dedos o abre la boca');
-  }
   if(filter === 'offset' && !P.offset.bg){
     if(segState === 'loading') return status('Cargando recorte de personas…');
     if(segState === 'failed') return status('Sin recorte de personas: se aplica a toda la imagen');
@@ -711,574 +685,11 @@ function offset(t){
   vctx.drawImage(ofOut, 0, 0, W, H);
 }
 
-/* Notas: los dedos y la boca tocan Do Re Mi Fa Sol La Si Do. Cada nota tiene su color, su nombre y su sonido. */
-const SCALE = [
-  {n:'Do', f:261.63, c:'#ff4d5e'}, {n:'Re', f:293.66, c:'#ff8a2b'}, {n:'Mi', f:329.63, c:'#ffd23f'}, {n:'Fa', f:349.23, c:'#3ccf6e'},
-  {n:'Sol', f:392.00, c:'#21c4c9'}, {n:'La', f:440.00, c:'#3d7bff'}, {n:'Si', f:493.88, c:'#9b5cff'}, {n:'Do', f:523.25, c:'#ff5cc8'}
-];
-const NOTE_GLYPHS = ['♪','♫','♩','♬'];
-const TIPS = [4, 8, 12, 16, 20];
-const HAND_MODEL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
-const FACE_MODEL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
-let notes = [], audio = null, handLm = null, faceLm = null, nState = 'idle', lastHit = {}, lastMouth = 0, mouthOpen = 0, nFrame = 0;
-let mvC = mk(64, 48), mvPrev = null;
+/* audio compartido (sonido de videos abiertos y grabación) */
+let audio = null;
 function ensureAudio(){
   if(audio){ if(audio.state === 'suspended') audio.resume(); return; }
   try{ audio = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ audio = null; }
-}
-function playNote(idx){
-  // sintetizador electrónico: dos ondas cuadrada/sierra desafinadas + filtro que se cierra (pluck digital)
-  if(!audio || !P.notes.sound) return;
-  if(audio.state === 'suspended') audio.resume();
-  const now = audio.currentTime, f = SCALE[idx].f;
-  const out = audio.createGain(), lp = audio.createBiquadFilter();
-  lp.type = 'lowpass'; lp.Q.value = 9;
-  lp.frequency.setValueAtTime(5200, now); lp.frequency.exponentialRampToValueAtTime(420, now + 0.32);
-  out.gain.setValueAtTime(0.0001, now); out.gain.exponentialRampToValueAtTime(0.16, now + 0.006);
-  out.gain.setValueAtTime(0.16, now + 0.08); out.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
-  lp.connect(out); out.connect(audio.destination); if(recDest) out.connect(recDest);
-  for(const [type, det, vol] of [['square', -7, 0.5], ['sawtooth', 7, 0.5], ['square', 1200, 0.18]]){
-    const o = audio.createOscillator(), og = audio.createGain();
-    o.type = type; o.frequency.value = f; o.detune.value = det; og.gain.value = vol;
-    o.connect(og).connect(lp); o.start(now); o.stop(now + 0.6);
-  }
-}
-function ensureNoteModels(){
-  if(nState !== 'idle') return;
-  nState = 'loading'; refreshStatus();
-  Promise.all([
-    createTask('HandLandmarker', {baseOptions:{modelAssetPath:HAND_MODEL}, runningMode:'VIDEO', numHands:2}),
-    createTask('FaceLandmarker', {baseOptions:{modelAssetPath:FACE_MODEL}, runningMode:'VIDEO', numFaces:1, outputFaceBlendshapes:true})
-  ]).then(([h, f]) => { handLm = h; faceLm = f; nState = 'ready'; refreshStatus(); })
-    .catch(e => { console.warn(e); nState = 'failed'; refreshStatus(); });
-}
-function emitNote(idx, x, y, t, up){
-  if(notes.length > 140){ const k = notes.findIndex(n => n.amb); notes.splice(k >= 0 ? k : 0, 1); }
-  const u = Math.min(W, H)/100, ang = -Math.PI/2 + (Math.random() - .5)*1.3, sp = u*(0.7 + Math.random()*0.7);
-  notes.push({idx, x, y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp*(up || 1), born:t, life:1800 + Math.random()*900,
-    g:NOTE_GLYPHS[(Math.random()*NOTE_GLYPHS.length) | 0], s:0.85 + Math.random()*0.35, ph:Math.random()*6.28, rot:(Math.random() - .5)*0.4});
-  playNote(idx);
-}
-// dedos: mano izquierda pulgar→Do, índice→Re, medio→Mi, anular→Fa, meñique→Sol
-//        mano derecha pulgar→La, índice→Si, medio→Do agudo (anular y meñique derechos no suenan)
-// La nota suena SOLO en el momento en que un dedo pasa de doblado a levantado.
-// Una mano que aparece o se queda abierta no suena: hay que bajar el dedo y volver a levantarlo.
-const FINGER_NOTE = {Left:[0, 1, 2, 3, 4], Right:[5, 6, 7, -1, -1]};
-const PIPS = [3, 6, 10, 14, 18];
-let fingerUp = {};
-const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-function trackFingers(t){
-  let r; try{ r = handLm.detectForVideo(ago(0), nextTs()); }catch(e){ return; }
-  const hands = r.landmarks || [], hd = r.handednesses || r.handedness || [], seen = {};
-  const sens = P.notes.sens, upTh = 1.32 - sens*0.012, downTh = 1.08 - sens*0.006;
-  hands.forEach((lm, h) => {
-    // MediaPipe supone imagen en espejo (cámara frontal); si no está en espejo, se invierte
-    let side = hd[h] && hd[h][0] ? hd[h][0].categoryName : (lm[0].x < 0.5 ? 'Left' : 'Right');
-    if(!mirror) side = side === 'Left' ? 'Right' : 'Left';
-    const map = FINGER_NOTE[side] || FINGER_NOTE.Left;
-    const palm = dist(lm[0], lm[9]) || 0.1;
-    TIPS.forEach((ti, f) => {
-      const k = side + f;
-      seen[k] = 1;
-      let up;
-      if(f === 0){
-        // pulgar: levantado cuando la punta se aleja de la base del índice
-        const rr = dist(lm[4], lm[5])/palm;
-        up = rr > 0.62 ? true : rr < 0.42 ? false : undefined;
-      }else{
-        // otros dedos: levantado cuando la punta queda más lejos de la muñeca que la articulación media
-        const rr = dist(lm[ti], lm[0])/(dist(lm[PIPS[f]], lm[0]) || 0.01);
-        up = rr > upTh ? true : rr < downTh ? false : undefined;
-      }
-      const prev = fingerUp[k];
-      if(up === undefined) return;              // zona intermedia: mantiene el estado anterior
-      fingerUp[k] = up;
-      if(prev === undefined) return;            // mano recién aparecida: solo registra, no suena
-      if(up && prev === false && P.notes.fingers && map[f] >= 0 && t - (lastHit[k] || 0) > 150){
-        lastHit[k] = t;
-        emitNote(map[f], lm[ti].x*W, lm[ti].y*H, t);
-      }
-    });
-  });
-  for(const k in fingerUp) if(!seen[k]) delete fingerUp[k];
-}
-// boca: mientras está abierta suena una nota; más abierta = más aguda
-function trackMouth(t){
-  let r; try{ r = faceLm.detectForVideo(ago(0), nextTs()); }catch(e){ return; }
-  const bs = r.faceBlendshapes && r.faceBlendshapes[0], lm = r.faceLandmarks && r.faceLandmarks[0];
-  if(!bs || !lm){ mouthOpen = 0; return; }
-  const jaw = (bs.categories.find(c => c.categoryName === 'jawOpen') || {score:0}).score;
-  mouthOpen = jaw;
-  const open = 0.42 - P.notes.sens*0.022;
-  if(P.notes.mouth && jaw > open && t - lastMouth > 380){
-    lastMouth = t;
-    const idx = clamp(Math.round((jaw - open)/(0.85 - open)*7), 0, 7);
-    const mx = (lm[13].x + lm[14].x)/2*W, my = (lm[13].y + lm[14].y)/2*H;
-    emitNote(idx, mx, my, t);
-  }
-}
-// respaldo solo si los detectores no cargan (por ejemplo en la vista previa): usa el movimiento general
-function motionFallback(t){
-  const mw = 64, mh = Math.max(12, Math.round(64*H/W));
-  if(mvC.height !== mh){ mvC.height = mh; mvPrev = null; }
-  const x = mvC.getContext('2d', {willReadFrequently:true}); x.drawImage(ago(0), 0, 0, mw, mh);
-  const d = x.getImageData(0, 0, mw, mh).data, n = mw*mh, cur = new Uint8Array(n), hits = [];
-  for(let i=0, j=0; i<n; i++, j+=4) cur[i] = (d[j]*77 + d[j+1]*150 + d[j+2]*29) >> 8;
-  if(mvPrev){ const th = 62 - P.notes.sens*4; for(let i=0;i<n;i++) if(Math.abs(cur[i] - mvPrev[i]) > th) hits.push(i); }
-  mvPrev = cur;
-  if(hits.length < 8 || t - lastMouth < 260) return;
-  lastMouth = t;
-  const i = hits[(Math.random()*hits.length) | 0], y = ((i / mw) | 0)/mh;
-  emitNote(clamp(Math.floor((1 - y)*8), 0, 7), (i % mw)/mw*W, y*H, t);
-}
-let lastAmbient = 0;
-function ambientNotes(t){
-  // notas negras que flotan por toda la imagen todo el rato, sin sonido
-  if(!P.notes.ambient) return;
-  const amb = notes.reduce((c, n) => c + (n.amb ? 1 : 0), 0);
-  if(amb < 32 && t - lastAmbient > 90){
-    lastAmbient = t;
-    const u = Math.min(W, H)/100, ang = Math.random()*Math.PI*2, sp = u*(0.12 + Math.random()*0.25);
-    notes.push({amb:true, idx:(Math.random()*8) | 0, x:Math.random()*W, y:Math.random()*H, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp - u*0.1,
-      born:t, life:3500 + Math.random()*3500, g:NOTE_GLYPHS[(Math.random()*NOTE_GLYPHS.length) | 0], s:0.6 + Math.random()*0.7,
-      ph:Math.random()*6.28, rot:(Math.random() - .5)*0.6});
-  }
-}
-function spawnNotes(t){
-  ambientNotes(t);
-  if(nState === 'ready'){
-    trackFingers(t);
-    if(nFrame++ % 2 === 0) trackMouth(t);
-  }else if(nState === 'failed') motionFallback(t);
-}
-function notesFx(t){
-  vctx.drawImage(ago(0), 0, 0);
-  const u = Math.min(W, H)/100, base = u*(9 + P.notes.size*2);
-  notes = notes.filter(n => t - n.born < n.life);
-  vctx.textAlign = 'center'; vctx.textBaseline = 'middle'; vctx.lineJoin = 'round';
-  for(const n of notes){
-    const age = (t - n.born)/n.life;
-    if(n.amb){ n.x += n.vx + Math.sin(t/700 + n.ph)*u*0.12; n.y += n.vy; }
-    else { n.x += n.vx + Math.sin(t/260 + n.ph)*u*0.3; n.y += n.vy; n.vy -= u*0.006; n.vx *= 0.99; }
-    const a = age < 0.08 ? age/0.08 : age > 0.7 ? (1 - age)/0.3 : 1;
-    const pop = age < 0.12 ? 0.6 + age/0.12*0.55 : 1.15 - Math.min(0.15, (age - 0.12)*0.4);
-    const sz = base*n.s*pop, note = SCALE[n.idx];
-    vctx.save(); vctx.translate(n.x, n.y); vctx.rotate(n.rot + Math.sin(t/400 + n.ph)*0.2);
-    vctx.globalAlpha = a;
-    vctx.font = `${sz}px "Apple Symbols","Segoe UI Symbol","Noto Music","Noto Sans Symbols 2",serif`;
-    vctx.fillStyle = '#000'; vctx.fillText(n.g, 0, 0);
-    vctx.restore(); continue;
-    const ls = Math.max(10, sz*0.36);
-    vctx.font = `800 ${ls}px "Bricolage Grotesque", system-ui, sans-serif`;
-    vctx.lineWidth = ls*0.3; vctx.strokeText(note.n, 0, sz*0.62);
-    vctx.fillStyle = '#0c0a0e'; vctx.fillText(note.n, 0, sz*0.62);
-    vctx.restore();
-  }
-  vctx.globalAlpha = 1;
-}
-
-/* Traductor: escucha tu voz (español), la traduce en el navegador y la dice en otro idioma, con subtítulos */
-const LANG_TAG = {ar:'ar-SA', en:'en-US', fr:'fr-FR', it:'it-IT', pt:'pt-BR', de:'de-DE', ja:'ja-JP', ko:'ko-KR', zh:'zh-CN', ru:'ru-RU'};
-let rec = null, recOn = false, translator = null, trLang = '', trStatus = '', srcText = '', srcInterim = '', dstText = '', dstInterim = '', trShown = 0;
-let speaking = false, interimT = 0, interimBusy = false, ttsUnlocked = false;
-function trSetStatus(m){ trStatus = m; if(filter === 'translate') status(m); }
-async function trEnsureTranslator(){
-  const lang = P.translate.lang;
-  if(translator && trLang === lang) return translator;
-  translator = null; trLang = lang;
-  if(!('Translator' in self)){ trSetStatus('Este Chrome no trae traductor incorporado: actualiza Chrome'); return null; }
-  try{
-    const av = await Translator.availability({sourceLanguage:'es', targetLanguage:lang});
-    if(av === 'unavailable'){ trSetStatus('Chrome no puede traducir a ese idioma'); return null; }
-    if(av !== 'available' && !(navigator.userActivation && navigator.userActivation.isActive)){
-      // Chrome exige un clic para descargar el idioma: mostramos el botón
-      trLang = ''; trSetStatus('Toca Inglés o Árabe para empezar'); return null;
-    }
-    if(av !== 'available') trSetStatus('Descargando el idioma (solo la primera vez)…');
-    const t = await Translator.create({sourceLanguage:'es', targetLanguage:lang, monitor(m){
-      m.addEventListener('downloadprogress', e => trSetStatus(`Descargando el idioma… ${Math.round((e.loaded || 0)*100)}%`)); }});
-    if(trLang !== lang) return null;
-    translator = t; trSetStatus('Habla en español');
-    return t;
-  }catch(e){ console.warn(e); trSetStatus('No pude activar el traductor: ' + (e.message || e)); return null; }
-}
-function pickVoice(lang){
-  const vs = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith(lang));
-  return vs.find(v => /premium|enhanced|natural/i.test(v.name)) || vs.find(v => v.localService) || vs[0] || null;
-}
-function speak(text){
-  if(!P.translate.voice || !('speechSynthesis' in self) || !text) return;
-  const u = new SpeechSynthesisUtterance(text), v = pickVoice(P.translate.lang);
-  u.lang = LANG_TAG[P.translate.lang] || P.translate.lang; if(v) u.voice = v; u.rate = 1.05;
-  u.onstart = () => { speaking = true; }; u.onend = () => { speaking = speechSynthesis.speaking; };
-  u.onerror = ev => { speaking = speechSynthesis.speaking; trDiag('La voz no pudo hablar: ' + (ev.error || 'error')); };
-  if(!v) trDiag('No encontré una voz instalada para ese idioma en tu Mac');
-  // cola: cada tramo traducido se dice en orden, sin cortar el anterior
-  speechSynthesis.speak(u);
-}
-// La voz va diciendo la traducción por tramos MIENTRAS hablas: cuando hay 4+ palabras nuevas "firmes"
-// (todas menos las 2 últimas, que el reconocedor aún puede corregir) se traducen y se dicen.
-let spokenUpTo = 0, speakChain = Promise.resolve();
-function speakChunk(words){
-  const chunk = words.join(' ').trim(); if(!chunk) return;
-  speakChain = speakChain.then(async () => {
-    const t = await trEnsureTranslator(); if(!t) return;
-    try{ speak(await t.translate(chunk)); }catch(e){ console.warn(e); }
-  });
-}
-function liveSpeak(text, final){
-  const words = text.split(/\s+/).filter(Boolean);
-  if(final){ speakChunk(words.slice(spokenUpTo)); spokenUpTo = 0; return; }
-  const firm = Math.max(0, words.length - 2);
-  if(firm < spokenUpTo) spokenUpTo = firm; // el reconocedor corrigió hacia atrás
-  if(firm - spokenUpTo >= 4){ speakChunk(words.slice(spokenUpTo, firm)); spokenUpTo = firm; }
-}
-async function trFinal(text){
-  srcText = text; srcInterim = ''; trShown = performance.now();
-  liveSpeak(text, true);
-  const t = await trEnsureTranslator(); if(!t) return;
-  try{ dstText = await t.translate(text); dstInterim = ''; trShown = performance.now(); }catch(e){ console.warn(e); }
-}
-async function trInterim(text){
-  // traduce también lo que vas diciendo, para que el subtítulo avance mientras hablas
-  if(interimBusy || performance.now() - interimT < 250) return;
-  interimBusy = true; interimT = performance.now();
-  try{ const t = await trEnsureTranslator(); if(t && srcInterim) dstInterim = await t.translate(text); }catch(e){}
-  interimBusy = false;
-}
-function trStart(){
-  if('speechSynthesis' in self) speechSynthesis.getVoices();
-  $('#tr-langs').hidden = false; syncLangButtons();
-  if(!ttsUnlocked) trSetStatus('Toca Inglés o Árabe para empezar');
-  trEnsureTranslator();
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ trSetStatus('Este navegador no reconoce voz: usa Chrome'); return; }
-  if(!rec){
-    rec = new SR(); rec.lang = 'es-CL'; rec.continuous = true; rec.interimResults = true;
-    rec.onresult = e => {
-      // "Solo mi voz": se acepta lo que se oye solo si tu boca se estuvo moviendo (la tele o la voz árabe no mueven tu boca)
-      const now = performance.now();
-      const gated = P.translate.gate && gateState === 'ready' && now - lastFace < 1500 && now - lastTalk > 1500;
-      const heard = e.results[e.results.length - 1][0].transcript.trim();
-      trDiag(gated ? `Ignorado (tu boca no se movía): "${heard.slice(-40)}"` : `Oído: "${heard.slice(-40)}"`);
-      for(let i=e.resultIndex; i<e.results.length; i++){
-        const r = e.results[i], txt = r[0].transcript.trim(); if(!txt) continue;
-        if(gated){ if(r.isFinal) spokenUpTo = 0; continue; }
-        if(r.isFinal) trFinal(txt); else { srcInterim = txt; trShown = performance.now(); trInterim(txt); liveSpeak(txt, false); }
-      }
-    };
-    rec.onstart = () => trDiag('Escuchando… habla en español');
-    rec.onaudiostart = () => trDiag('Micrófono activo… habla en español');
-    rec.onerror = e => { if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){ recOn = false; trSetStatus('Chrome no dio permiso al micrófono'); } else if(e.error !== 'no-speech' && e.error !== 'aborted') trSetStatus('Error de voz: ' + e.error); };
-    rec.onend = () => { if(recOn) startRec(); };
-  }
-  ensureFaceGate();
-  if(!recOn){ recOn = true; prepMic().then(startRec); }
-}
-// micrófono con supresión de ruido y aislamiento de voz (si este Chrome deja pasárselo al reconocedor)
-let micTrack = null;
-async function prepMic(){
-  if(micTrack && micTrack.readyState === 'live') return;
-  try{
-    const st = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true, voiceIsolation:true}});
-    micTrack = st.getAudioTracks()[0];
-  }catch(e){ micTrack = null; }
-}
-function startRec(){ try{ micTrack ? rec.start(micTrack) : rec.start(); }catch(e){ try{ rec.start(); }catch(err){} } }
-// detector de boca para "Solo mi voz"
-let faceGate = null, gateState = 'idle', lastTalk = -1e9, lastFace = -1e9, lipHist = [], gateFrame = 0;
-function trDiag(m){ trSetStatus(m); }
-function ensureFaceGate(){
-  if(gateState !== 'idle') return;
-  gateState = 'loading';
-  createTask('FaceLandmarker', {baseOptions:{modelAssetPath:FACE_MODEL}, runningMode:'VIDEO', numFaces:1})
-    .then(f => { faceGate = f; gateState = 'ready'; })
-    .catch(e => { console.warn(e); gateState = 'failed'; trSetStatus('No cargó el detector de boca: se escucha todo el sonido'); });
-}
-function trackTalking(t){
-  if(gateState !== 'ready' || gateFrame++ % 2) return;
-  let r; try{ r = faceGate.detectForVideo(ago(0), nextTs()); }catch(e){ return; }
-  const lm = r.faceLandmarks && r.faceLandmarks[0]; if(!lm) return;
-  lastFace = t;
-  const faceH = Math.hypot(lm[10].x - lm[152].x, lm[10].y - lm[152].y) || 0.1;
-  const open = Math.hypot(lm[13].x - lm[14].x, lm[13].y - lm[14].y)/faceH;
-  lipHist.push([t, open]); while(lipHist.length && t - lipHist[0][0] > 700) lipHist.shift();
-  if(lipHist.length > 4){
-    const m = lipHist.reduce((a, b) => a + b[1], 0)/lipHist.length;
-    const sd = Math.sqrt(lipHist.reduce((a, b) => a + (b[1] - m)*(b[1] - m), 0)/lipHist.length);
-    if(sd > 0.004) lastTalk = t;
-  }
-}
-// botón: el clic da permiso para descargar el idioma y para que la voz pueda hablar
-function syncLangButtons(){ for(const b of document.querySelectorAll('.trl')) b.setAttribute('aria-pressed', b.dataset.lang === P.translate.lang); }
-for(const b of document.querySelectorAll('.trl')) b.addEventListener('click', () => {
-  // el clic elige el idioma y además da el permiso que Chrome pide para descargar el idioma y dejar hablar a la voz
-  const lang = b.dataset.lang;
-  P.translate.lang = lang; syncLangButtons();
-  try{ localStorage.setItem('camara-rara-idioma', lang); }catch(e){}
-  dstText = ''; dstInterim = ''; spokenUpTo = 0;
-  try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); ttsUnlocked = true; }catch(e){}
-  if('Translator' in self){
-    translator = null; trLang = lang;
-    trSetStatus('Preparando ' + (lang === 'ar' ? 'árabe' : 'inglés') + '…');
-    Translator.create({sourceLanguage:'es', targetLanguage:lang, monitor(m){
-      m.addEventListener('downloadprogress', e => trSetStatus(`Descargando el idioma… ${Math.round((e.loaded || 0)*100)}%`)); }})
-      .then(t => { if(P.translate.lang !== lang) return; translator = t; trSetStatus('Listo: habla en español'); })
-      .catch(e => trSetStatus('No pude activar el traductor: ' + (e.message || e)));
-  }else trSetStatus('Este Chrome no trae traductor incorporado: actualiza Chrome');
-  if(rec && !recOn){ recOn = true; startRec(); }
-});
-try{ const l = localStorage.getItem('camara-rara-idioma'); if(l === 'en' || l === 'ar') P.translate.lang = l; }catch(e){}
-syncLangButtons();
-function trStop(){ $('#tr-langs').hidden = true; spokenUpTo = 0; if(rec && recOn){ recOn = false; try{ rec.stop(); }catch(e){} } if('speechSynthesis' in self) speechSynthesis.cancel(); }
-function trChangeLang(){ translator = null; dstText = ''; dstInterim = ''; trEnsureTranslator(); }
-function wrapLines(text, maxW){
-  const words = text.split(/\s+/), lines = []; let line = '';
-  for(const w of words){ const tst = line ? line + ' ' + w : w; if(vctx.measureText(tst).width > maxW && line){ lines.push(line); line = w; } else line = tst; }
-  if(line) lines.push(line);
-  return lines.slice(-3);
-}
-function translateFx(t){
-  vctx.drawImage(ago(0), 0, 0);
-  const age = performance.now() - trShown;
-  if(age > 9000) return;
-  const fade = age > 7000 ? 1 - (age - 7000)/2000 : 1;
-  const u = Math.min(W, H)/100, big = u*(3 + P.translate.size*0.55), small = big*0.55, pad = u*3, maxW = W - pad*4;
-  const dst = dstInterim && srcInterim ? dstInterim : dstText, src = srcInterim || srcText;
-  vctx.save(); vctx.globalAlpha = fade; vctx.textAlign = 'center'; vctx.textBaseline = 'alphabetic';
-  vctx.font = `700 ${big}px "Geeza Pro","Noto Naskh Arabic","Hiragino Sans","PingFang SC",system-ui,sans-serif`;
-  vctx.direction = P.translate.lang === 'ar' ? 'rtl' : 'ltr';
-  const dl = dst ? wrapLines(dst, maxW) : [];
-  vctx.direction = 'ltr';
-  vctx.font = `500 ${small}px system-ui,sans-serif`;
-  const sl = src ? wrapLines(src, maxW) : [];
-  // posiciones de las líneas (línea base), de arriba hacia abajo
-  const base = []; let yy = 0;
-  sl.forEach((l, k) => { yy += k ? small*1.3 : small; base.push(['s', l, yy]); });
-  dl.forEach((l, k) => { yy += (k || sl.length) ? big*1.25 : big; base.push(['d', l, yy]); });
-  if(!base.length){ vctx.restore(); return; }
-  const boxH = yy + big*0.35 + pad*1.4, y0 = H - pad - boxH, top = y0 + pad*0.8;
-  vctx.fillStyle = 'rgba(10,8,14,.62)';
-  vctx.beginPath(); vctx.roundRect ? vctx.roundRect(pad, y0, W - pad*2, boxH, u*2) : vctx.rect(pad, y0, W - pad*2, boxH); vctx.fill();
-  for(const [kind, l, by] of base){
-    if(kind === 's'){ vctx.direction = 'ltr'; vctx.font = `500 ${small}px system-ui,sans-serif`; vctx.fillStyle = 'rgba(255,255,255,.72)'; }
-    else { vctx.direction = P.translate.lang === 'ar' ? 'rtl' : 'ltr'; vctx.font = `700 ${big}px "Geeza Pro","Noto Naskh Arabic","Hiragino Sans","PingFang SC",system-ui,sans-serif`; vctx.fillStyle = '#fff'; }
-    vctx.fillText(l, W/2, top + by);
-  }
-  vctx.restore();
-}
-
-/* ---------- Rayos X: radiografía azulada + huesos dibujados sobre manos, cara y cuerpo ---------- */
-const POSE_MODEL = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task';
-const FACE_OVAL = [10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109];
-let poseLm = null, xrState = 'idle', xrFrame = 0, xrHands = [], xrFace = null, xrPose = [], xrTH = -1e9, xrTF = -1e9, xrTP = -1e9;
-let xrS = mk(2,2), xrB = mk(2,2), xrScan = null;
-function ensureXrModels(){
-  ensureNoteModels();
-  return; // solo manos: el cuerpo y la calavera se quitaron a pedido
-  createTask('PoseLandmarker', {baseOptions:{modelAssetPath:POSE_MODEL}, runningMode:'VIDEO', numPoses:2})
-    .then(pl => { poseLm = pl; xrState = 'ready'; refreshStatus(); })
-    .catch(e => { console.warn(e); xrState = 'failed'; refreshStatus(); });
-}
-function xrStatus(){
-  if(nState === 'loading') return 'Cargando detector de manos…';
-  if(nState === 'failed') return 'No cargó el detector de manos: se ve solo la radiografía';
-  return '';
-}
-// suaviza los puntos entre cuadros para que los huesos no tiemblen
-const xrSmooth = (prev, cur, k) => (!prev || prev.length !== cur.length) ? cur.map(p => ({x:p.x, y:p.y, v:p.visibility})) : cur.map((p, i) => ({x:prev[i].x + (p.x - prev[i].x)*k, y:prev[i].y + (p.y - prev[i].y)*k, v:p.visibility}));
-function xrTrack(t){
-  const f = ago(0), n = xrFrame++;
-  if(nState === 'ready' && handLm){
-    try{ const r = handLm.detectForVideo(f, nextTs()); xrHands = (r.landmarks || []).map((h, i) => xrSmooth(xrHands[i], h, .7)); xrTH = t; }catch(e){}
-    if(false) try{ const r = faceLm.detectForVideo(f, nextTs()); const lm = r.faceLandmarks && r.faceLandmarks[0]; xrFace = lm ? xrSmooth(xrFace, lm, .6) : null; xrTF = t; }catch(e){}
-  }
-  if(xrState === 'ready' && poseLm && n % 2 === 1){
-    try{ const r = poseLm.detectForVideo(f, nextTs()); xrPose = (r.landmarks || []).map((p, i) => xrSmooth(xrPose[i], p, .55)); xrTP = t; }catch(e){}
-  }
-}
-// un hueso: caña con dos cabezas (epífisis), borde brillante y médula más oscura
-function bone(c, ax, ay, bx, by, w){
-  const L = Math.hypot(bx - ax, by - ay); if(L < 1) return;
-  c.lineCap = 'round';
-  c.strokeStyle = 'rgba(232,247,255,.82)'; c.lineWidth = w; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
-  c.fillStyle = 'rgba(240,250,255,.9)';
-  c.beginPath(); c.arc(ax, ay, w*.72, 0, 7); c.fill(); c.beginPath(); c.arc(bx, by, w*.72, 0, 7); c.fill();
-  const ux = (bx - ax)/L, uy = (by - ay)/L, m = Math.min(w*.9, L*.25);
-  c.strokeStyle = 'rgba(120,170,205,.55)'; c.lineWidth = w*.32; c.beginPath(); c.moveTo(ax + ux*m, ay + uy*m); c.lineTo(bx - ux*m, by - uy*m); c.stroke();
-}
-function xrHand(c, h){
-  const P_ = i => [h[i].x*W, h[i].y*H], palm = Math.hypot((h[0].x - h[9].x)*W, (h[0].y - h[9].y)*H);
-  if(palm < 8) return;
-  const w0 = palm*.115;
-  // huesos del carpo (muñeca)
-  const [wx, wy] = P_(0), [mx, my] = P_(9);
-  for(let k = 0; k < 7; k++){
-    const a = k*0.9, r = palm*(.06 + (k % 3)*.012), fx = wx + (mx - wx)*.12 + Math.cos(a)*palm*.11, fy = wy + (my - wy)*.12 + Math.sin(a)*palm*.08;
-    c.fillStyle = 'rgba(225,243,255,.75)'; c.beginPath(); c.ellipse(fx, fy, r, r*.8, a, 0, 7); c.fill();
-  }
-  // metacarpos
-  for(const b of [1, 5, 9, 13, 17]){
-    const [bx, by] = P_(b), s = b === 1 ? .35 : .22;
-    bone(c, wx + (bx - wx)*s, wy + (by - wy)*s, bx, by, w0*(b === 17 ? .85 : 1));
-  }
-  // falanges (se adelgazan hacia la punta)
-  for(const [a, b, s] of [[1,2,1],[2,3,.9],[3,4,.75],[5,6,.9],[6,7,.75],[7,8,.62],[9,10,.92],[10,11,.76],[11,12,.62],[13,14,.88],[14,15,.72],[15,16,.6],[17,18,.78],[18,19,.64],[19,20,.54]]){
-    const [ax, ay] = P_(a), [bx, by] = P_(b);
-    const g = .14; bone(c, ax + (bx - ax)*g, ay + (by - ay)*g, bx - (bx - ax)*g*.6, by - (by - ay)*g*.6, w0*s);
-  }
-}
-function xrSkull(c, f){
-  const P_ = i => [f[i].x*W, f[i].y*H];
-  const [tx, ty] = P_(10), [cx_, cy_] = P_(152), fh = Math.hypot(cx_ - tx, cy_ - ty);
-  if(fh < 20) return;
-  const mx = (tx + cx_)/2, my = (ty + cy_)/2, ux = (tx - cx_)/fh, uy = (ty - cy_)/fh; // eje hacia arriba de la cara
-  // cráneo: el óvalo de la cara agrandado, con la parte de arriba más alta (la bóveda craneal)
-  const pts = FACE_OVAL.map(i => {
-    const [x, y] = P_(i), dx = x - mx, dy = y - my, up = dx*ux + dy*uy, k = up > 0 ? 1.1 + up/fh*0.55 : 1.04;
-    return [mx + dx*k, my + dy*k];
-  });
-  c.save();
-  const g = c.createRadialGradient(mx, my, fh*.1, mx, my, fh*.75); g.addColorStop(0, 'rgba(170,215,240,.18)'); g.addColorStop(.75, 'rgba(200,232,250,.42)'); g.addColorStop(1, 'rgba(235,248,255,.75)');
-  c.fillStyle = g; c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y)); c.closePath(); c.fill();
-  c.strokeStyle = 'rgba(240,250,255,.9)'; c.lineWidth = fh*.035; c.lineJoin = 'round'; c.stroke();
-  // pómulos
-  c.strokeStyle = 'rgba(225,243,255,.6)'; c.lineWidth = fh*.03; c.lineCap = 'round';
-  for(const [a, b, d] of [[234, 50, 116], [454, 280, 345]]){ const [ax, ay] = P_(a), [bx, by] = P_(b), [qx, qy] = P_(d); c.beginPath(); c.moveTo(ax, ay); c.quadraticCurveTo(qx, qy, bx, by); c.stroke(); }
-  // mandíbula
-  c.strokeStyle = 'rgba(240,250,255,.85)'; c.lineWidth = fh*.05;
-  c.beginPath(); [132, 58, 172, 136, 150, 149, 176, 148, 152, 377, 400, 378, 379, 365, 397, 288, 361].forEach((i, k) => { const [x, y] = P_(i); k ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke();
-  // órbitas de los ojos
-  for(const [a, b, top, bot] of [[33, 133, 159, 145], [362, 263, 386, 374]]){
-    const [ax, ay] = P_(a), [bx, by] = P_(b), ew = Math.hypot(bx - ax, by - ay), ex = (ax + bx)/2, ey = (P_(top)[1] + P_(bot)[1])/2, ang = Math.atan2(by - ay, bx - ax);
-    c.fillStyle = 'rgba(2,10,20,.92)'; c.beginPath(); c.ellipse(ex, ey - ew*.05, ew*.78, ew*.62, ang, 0, 7); c.fill();
-    c.strokeStyle = 'rgba(235,248,255,.85)'; c.lineWidth = fh*.025; c.stroke();
-  }
-  // cavidad nasal
-  const [n1x, n1y] = P_(6), [nlx, nly] = P_(129), [nrx, nry] = P_(358), [nbx, nby] = P_(2);
-  c.fillStyle = 'rgba(2,10,20,.9)'; c.beginPath(); c.moveTo(n1x + (nbx - n1x)*.35, n1y + (nby - n1y)*.35); c.quadraticCurveTo(nlx, nly, nbx, nby); c.quadraticCurveTo(nrx, nry, n1x + (nbx - n1x)*.35, n1y + (nby - n1y)*.35); c.fill();
-  // dientes: fila de arriba cuelga del labio superior, fila de abajo sube desde el inferior (se separan al abrir la boca)
-  const [lx, ly] = P_(61), [rx, ry] = P_(291), [ux_, uy_] = P_(13), [dx_, dy_] = P_(14), mw = Math.hypot(rx - lx, ry - ly), th = fh*.075, n = 8;
-  c.fillStyle = 'rgba(245,252,255,.92)';
-  for(let k = 0; k < n; k++){
-    const fr = .12 + k*(.76/(n - 1)), x = lx + (rx - lx)*fr, curve = Math.sin(fr*Math.PI)*fh*.02, tw = mw*.085;
-    const yu = ly + (ry - ly)*fr + (uy_ - (ly + ry)/2) + curve, yd = ly + (ry - ly)*fr + (dy_ - (ly + ry)/2) + curve;
-    c.beginPath(); c.roundRect ? c.roundRect(x - tw/2, yu - th, tw*.9, th, tw*.3) : c.rect(x - tw/2, yu - th, tw*.9, th); c.fill();
-    c.beginPath(); c.roundRect ? c.roundRect(x - tw/2, yd, tw*.9, th*.9, tw*.3) : c.rect(x - tw/2, yd, tw*.9, th*.9); c.fill();
-  }
-  c.restore();
-  return {cx:cx_, cy:cy_, fh, ux, uy};
-}
-function xrBody(c, p, skull){
-  const vis = i => p[i] && (p[i].v === undefined || p[i].v > .5) && p[i].x > -.2 && p[i].x < 1.2 && p[i].y > -.2 && p[i].y < 1.4;
-  const P_ = i => [p[i].x*W, p[i].y*H];
-  if(!vis(11) || !vis(12)) return false;
-  const [lx, ly] = P_(11), [rx, ry] = P_(12), sw = Math.hypot(lx - rx, ly - ry); if(sw < 20) return false;
-  const nx = (lx + rx)/2, ny = (ly + ry)/2;
-  // dirección "abajo" del torso: hacia las caderas si se ven, si no perpendicular a los hombros
-  let dx = -(ly - ry)/sw, dy = (lx - rx)/sw; if(dy < 0){ dx = -dx; dy = -dy; }
-  let tl = sw*1.35, hx, hy;
-  if(vis(23) && vis(24)){ const [a, b] = P_(23), [c2, d] = P_(24); hx = (a + c2)/2; hy = (b + d)/2; tl = Math.hypot(hx - nx, hy - ny); dx = (hx - nx)/tl; dy = (hy - ny)/tl; }
-  else { hx = nx + dx*tl; hy = ny + dy*tl; }
-  const w = sw*.075, px = -dy, py = dx; // px,py: hacia el costado
-  // columna: del mentón (o del cuello) hasta la pelvis
-  const topX = skull ? skull.cx : nx - dx*sw*.35, topY = skull ? skull.cy + sw*.05 : ny - dy*sw*.35;
-  const segs = 22;
-  for(let k = 0; k < segs; k++){
-    const f0 = k/segs, x = topX + (hx - topX)*f0, y = topY + (hy - topY)*f0, s = .6 + f0*.55;
-    c.fillStyle = 'rgba(228,245,255,.85)'; c.beginPath(); c.ellipse(x, y, w*.62*s, Math.hypot(hx - topX, hy - topY)/segs*.38, Math.atan2(py, px), 0, 7); c.fill();
-  }
-  // clavículas
-  c.strokeStyle = 'rgba(232,247,255,.85)'; c.lineCap = 'round'; c.lineWidth = w*.7;
-  for(const [sx, sy] of [[lx, ly], [rx, ry]]){ c.beginPath(); c.moveTo(nx + dx*sw*.06, ny + dy*sw*.06); c.quadraticCurveTo((nx + sx)/2 - dx*sw*.05, (ny + sy)/2 - dy*sw*.05, sx, sy); c.stroke(); }
-  // costillas
-  c.lineWidth = w*.42; c.strokeStyle = 'rgba(225,244,255,.72)';
-  for(let k = 0; k < 10; k++){
-    const f0 = .1 + k*.052, sx = nx + dx*tl*f0, sy = ny + dy*tl*f0, reach = sw*(.36 + Math.sin((k + 2)/12*Math.PI)*.14), drop = tl*(.05 + k*.006);
-    for(const side of [1, -1]){
-      c.beginPath(); c.moveTo(sx, sy);
-      c.bezierCurveTo(sx + px*side*reach*.8 - dx*tl*.03, sy + py*side*reach*.8 - dy*tl*.03, sx + px*side*reach*1.05 + dx*drop*.5, sy + py*side*reach*1.05 + dy*drop*.5, sx + px*side*reach*.55 + dx*drop*1.8, sy + py*side*reach*.55 + dy*drop*1.8);
-      c.stroke();
-    }
-  }
-  // esternón
-  bone(c, nx + dx*tl*.08, ny + dy*tl*.08, nx + dx*tl*.42, ny + dy*tl*.42, w*.7);
-  // pelvis
-  if(vis(23) && vis(24) || hy < H*1.1){
-    c.fillStyle = 'rgba(220,240,255,.55)'; c.strokeStyle = 'rgba(238,250,255,.85)'; c.lineWidth = w*.4;
-    for(const side of [1, -1]){ c.beginPath(); c.ellipse(hx + px*side*sw*.28, hy + py*side*sw*.28 - dy*sw*.08, sw*.26, sw*.2, Math.atan2(py, px)*side*.3, 0, 7); c.fill(); c.stroke(); }
-  }
-  // brazos y piernas
-  for(const [a, b, s, two] of [[11,13,1,0],[12,14,1,0],[13,15,.85,1],[14,16,.85,1],[23,25,1.2,0],[24,26,1.2,0],[25,27,1,1],[26,28,1,1]]){
-    if(!vis(a) || !vis(b)) continue;
-    const [ax, ay] = P_(a), [bx, by] = P_(b);
-    if(two){ // antebrazo/pierna: dos huesos paralelos
-      const L = Math.hypot(bx - ax, by - ay) || 1, ox = -(by - ay)/L*w*.5, oy = (bx - ax)/L*w*.5;
-      bone(c, ax + ox, ay + oy, bx + ox*.6, by + oy*.6, w*s*.62); bone(c, ax - ox, ay - oy, bx - ox*.6, by - oy*.6, w*s*.55);
-    }else bone(c, ax, ay, bx, by, w*s);
-  }
-  return true;
-}
-// Radiografía HD: se trabaja a resolución completa. Luminancia invertida + realce de detalle (máscara de enfoque)
-// + niveles automáticos + paleta de placa azulada.
-const XR_LUT = buildLUT([[0,'#01050b'],[.22,'#0b2234'],[.45,'#2f5f80'],[.68,'#7fb3d2'],[.86,'#cfe9f7'],[1,'#ffffff']]);
-let xrL = new Float32Array(4), xrLo = 20, xrHi = 235;
-function xray(t){
-  const p = P.xray, u = Math.min(W, H);
-  if(xrS.width !== W || xrS.height !== H){ xrS.width = W; xrS.height = H; xrB.width = W; xrB.height = H; xrL = new Float32Array(W*H); }
-  const s = xrS.getContext('2d', {willReadFrequently:true}), b = xrB.getContext('2d', {willReadFrequently:true});
-  s.filter = 'none'; s.drawImage(ago(0), 0, 0);
-  b.filter = `grayscale(1) blur(${(u*.012).toFixed(1)}px)`; b.drawImage(ago(0), 0, 0); b.filter = 'none';
-  const img = s.getImageData(0, 0, W, H), d = img.data, bd = b.getImageData(0, 0, W, H).data, n = W*H;
-  const k = 0.6 + p.contrast*0.35, hist = new Uint32Array(256);
-  for(let i = 0, j = 0; i < n; i++, j += 4){
-    const v = 255 - (d[j]*77 + d[j + 1]*150 + d[j + 2]*29)/256, bl = 255 - bd[j];
-    let o = v + (v - bl)*k; o = o < 0 ? 0 : o > 255 ? 255 : o;
-    xrL[i] = o; hist[o | 0]++;
-  }
-  let acc = 0, plo = 0, phi = 255;
-  for(let i = 0; i < 256; i++){ acc += hist[i]; if(acc >= n*0.01){ plo = i; break; } }
-  acc = 0; for(let i = 255; i >= 0; i--){ acc += hist[i]; if(acc >= n*0.003){ phi = i; break; } }
-  xrLo += (plo - xrLo)*0.15; xrHi += (phi - xrHi)*0.15;
-  const range = Math.max(40, xrHi - xrLo);
-  for(let i = 0, j = 0; i < n; i++, j += 4){
-    let v = (xrL[i] - xrLo)/range; v = v < 0 ? 0 : v > 1 ? 1 : v;
-    const q = ((v*v*0.45 + v*0.55)*255 | 0)*3;
-    d[j] = XR_LUT[q]; d[j + 1] = XR_LUT[q + 1]; d[j + 2] = XR_LUT[q + 2];
-  }
-  s.putImageData(img, 0, 0);
-  vctx.save();
-  const segOn = segState === 'ready' && lastMask;
-  if(segOn){
-    vctx.fillStyle = '#01050b'; vctx.fillRect(0, 0, W, H);
-    vctx.globalAlpha = .35; vctx.drawImage(xrS, 0, 0); vctx.globalAlpha = 1;
-    b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); b.drawImage(xrS, 0, 0);
-    b.globalCompositeOperation = 'destination-in'; b.drawImage(lastMask, 0, 0, W, H); b.globalCompositeOperation = 'source-over';
-    vctx.drawImage(xrB, 0, 0);
-  }else vctx.drawImage(xrS, 0, 0);
-  // resplandor suave (no borra el detalle)
-  if(p.glow){ vctx.globalCompositeOperation = 'screen'; vctx.globalAlpha = p.glow*.035; vctx.filter = `blur(${(u*.015).toFixed(1)}px)`; vctx.drawImage(segOn ? xrB : xrS, 0, 0); vctx.filter = 'none'; vctx.globalAlpha = 1; vctx.globalCompositeOperation = 'source-over'; }
-  // huesos de las manos
-  if(p.bones && t - xrTH < 300){
-    vctx.shadowColor = 'rgba(170,225,255,.9)'; vctx.shadowBlur = u*.012;
-    xrHands.forEach(h => xrHand(vctx, h));
-    vctx.shadowBlur = 0;
-  }
-  // viñeta y rótulos
-  const vg = vctx.createRadialGradient(W/2, H/2, u*.4, W/2, H/2, Math.hypot(W, H)*.62); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.5)');
-  vctx.fillStyle = vg; vctx.fillRect(0, 0, W, H);
-  const fs = Math.max(10, Math.round(u*.028)), pad = Math.round(u*.035);
-  vctx.font = `500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`; vctx.fillStyle = 'rgba(200,236,255,.85)';
-  vctx.textBaseline = 'top'; vctx.textAlign = 'left';
-  vctx.fillText('RX · 72 kV · 0.8 mAs', pad, pad);
-  const dt = new Date(), z = n => String(n).padStart(2, '0');
-  vctx.textAlign = 'right'; vctx.textBaseline = 'bottom';
-  vctx.fillText(`${z(dt.getDate())}/${z(dt.getMonth() + 1)}/${dt.getFullYear()}  ${z(dt.getHours())}:${z(dt.getMinutes())}:${z(dt.getSeconds())}`, W - pad, H - pad);
-  const ms = fs*2;
-  vctx.strokeStyle = 'rgba(220,245,255,.9)'; vctx.lineWidth = Math.max(1, fs*.12); vctx.strokeRect(W - pad - ms, pad, ms, ms);
-  vctx.font = `700 ${Math.round(ms*.7)}px "IBM Plex Mono", ui-monospace, monospace`; vctx.textAlign = 'center'; vctx.textBaseline = 'middle';
-  vctx.fillStyle = 'rgba(235,250,255,.95)'; vctx.fillText(mirror ? 'R' : 'L', W - pad - ms/2, pad + ms/2 + 1);
-  vctx.restore();
 }
 
 /* ---------- Estirado: deformación de espejo de feria, hacia arriba (anclado abajo) y hacia los lados (desde el centro) ---------- */
@@ -1531,18 +942,12 @@ function loop(t){
   const [sw, sh] = srcSize(); ensureSize(sw, sh);
   if(t - lastCap >= 31 || count === 0){
     lastCap = t; capture();
-    if(filter === 'notes') spawnNotes(t);
-    if(filter === 'translate') trackTalking(t);
-    if(filter === 'xray') xrTrack(t);
-    if((filter === 'echo' || filter === 'xray' || (filter === 'offset' && !P.offset.bg)) && segState === 'ready' && segmenter) segment();
+    if((filter === 'echo' || (filter === 'offset' && !P.offset.bg)) && segState === 'ready' && segmenter) segment();
   }
   switch(filter){
     case 'thermal': thermal(); break;
     case 'offset': offset(t); break;
     case 'echo': echo(t); break;
-    case 'notes': notesFx(t); break;
-    case 'translate': translateFx(t); break;
-    case 'xray': xray(t); break;
     case 'stretch': stretch(); break;
     case 'cas': cas(); break;
     case 'light': lightPaint(t); break;
@@ -1564,13 +969,10 @@ let nameT;
 function setFilter(id, announce = true){
   filter = id;
   for(const b of rail.children){ const on = b.dataset.id === id; b.setAttribute('aria-pressed', on); if(on) b.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'}); }
-  if(id === 'echo' || id === 'offset' || id === 'xray') ensureSegmenter();
-  if(id === 'xray'){ ensureXrModels(); xrHands = []; xrFace = null; xrPose = []; }
+  if(id === 'echo' || id === 'offset') ensureSegmenter();
   if(id === 'echo'){ ghosts = []; lastGhost = -1e9; }
   if(id === 'light') lpClear();
-  if(id === 'translate') trStart(); else trStop();
-  if(id === 'notes'){ ensureAudio(); ensureNoteModels(); notes = []; mvPrev = null; fingerUp = {}; }
-  buildParams(); refreshStatus(); if(typeof syncMute === 'function') try{ syncMute(); syncPal(); syncRails(); }catch(e){}
+  buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
   if(announce){ const el = $('#flt-name'); el.textContent = FILTERS.find(f => f.id === id).name; el.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => el.classList.remove('on'), 700); }
   try{ localStorage.setItem('camara-rara-filtro', id); }catch(e){}
 }
@@ -1590,7 +992,7 @@ function buildParams(){
     }else if(p.options){
       wrap.className = 'param';
       wrap.innerHTML = `<label for="${id}">${p.label}</label><select id="${id}" class="pill">${p.options.map(([v, l]) => `<option value="${v}" ${P[filter][p.k] === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
-      wrap.querySelector('select').addEventListener('change', e => { P[filter][p.k] = e.target.value; if(filter === 'translate') trChangeLang(); });
+      wrap.querySelector('select').addEventListener('change', e => { P[filter][p.k] = e.target.value; });
     }else if(p.toggle){
       wrap.className = 'param toggle';
       wrap.innerHTML = `<input type="checkbox" id="${id}" ${P[filter][p.k] ? 'checked' : ''}><label for="${id}">${p.label}</label>`;
@@ -1639,15 +1041,6 @@ window.addEventListener('dragover', e => { if(!hasFiles(e)) return; e.preventDef
 window.addEventListener('dragleave', e => { if(!hasFiles(e)) return; dragN = Math.max(0, dragN - 1); if(!dragN) $('#drop-hint').hidden = true; });
 window.addEventListener('drop', e => { if(!hasFiles(e)) return; e.preventDefault(); dragN = 0; $('#drop-hint').hidden = true; const f = e.dataTransfer.files && e.dataTransfer.files[0]; if(f) useFile(f); });
 
-/* botón de silencio para Notas */
-function syncMute(){
-  const b = $('#btn-mute'), muted = !P.notes.sound;
-  b.hidden = filter !== 'notes';
-  b.setAttribute('aria-pressed', muted); b.title = muted ? 'Activar sonido' : 'Silenciar';
-  b.setAttribute('aria-label', muted ? 'Activar el sonido de las notas' : 'Silenciar las notas');
-  b.querySelector('.on').style.display = muted ? 'none' : ''; b.querySelector('.off').style.display = muted ? '' : 'none';
-  const cb = document.getElementById('p-notes-sound'); if(cb) cb.checked = !muted;
-}
 $('#btn-pal').addEventListener('click', togglePal);
 $('#btn-lpclear').addEventListener('click', () => { lpClear(); toast('Dibujo borrado'); });
 for(const k of ['up', 'side']) $('#rail-' + k).addEventListener('input', e => {
@@ -1656,13 +1049,6 @@ for(const k of ['up', 'side']) $('#rail-' + k).addEventListener('input', e => {
   const pi = document.getElementById('p-' + f + '-' + k); if(pi){ pi.value = P[f][k]; const o = pi.parentElement.querySelector('output'); if(o) o.textContent = Math.round(P[f][k]); }
 });
 try{ const sp = localStorage.getItem('camara-rara-paleta'); if(sp === 'rainbow' || sp === 'iron') P.thermal.pal = sp; }catch(e){}
-$('#btn-mute').addEventListener('click', () => {
-  P.notes.sound = P.notes.sound ? 0 : 1; if(P.notes.sound) ensureAudio();
-  try{ localStorage.setItem('camara-rara-sonido', P.notes.sound); }catch(e){}
-  syncMute(); toast(P.notes.sound ? 'Sonido activado' : 'Sonido apagado');
-});
-document.addEventListener('change', e => { if(e.target && e.target.id === 'p-notes-sound'){ try{ localStorage.setItem('camara-rara-sonido', P.notes.sound); }catch(err){} syncMute(); } });
-try{ const m = localStorage.getItem('camara-rara-sonido'); if(m !== null) P.notes.sound = +m; }catch(e){}
 
 /* ---------- fotos ---------- */
 const shots = []; let sel = 0;
@@ -1686,7 +1072,7 @@ function fileStamp(){
   return `flami-cam-${name}-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 
-/* ---------- video: graba lo que se ve en pantalla (con el filtro) + el micrófono + el sonido de las notas ---------- */
+/* ---------- video: graba lo que se ve en pantalla (con el filtro) + el micrófono ---------- */
 let recDest = null, recorder = null, recMic = null, recChunks = [], recT0 = 0, recTimer = 0, recPoster = null;
 function pickMime(){
   if(!window.MediaRecorder) return null;
@@ -1784,7 +1170,7 @@ setFilter(filter, false);
 useDemo();
 startCamera();
 requestAnimationFrame(loop);
-window.__camara = {setFilter, snap, useFile, get src(){return srcKind}, trTest:(a, b) => { srcText = a; dstText = b; trShown = performance.now(); }, get W(){return W}, get seg(){return segState}, xrFake(h, f, p){ xrHands = h; xrFace = f; xrPose = p; xrTH = xrTF = xrTP = 1e12; }};
+window.__camara = {setFilter, snap, useFile, get src(){return srcKind}, get W(){return W}, get seg(){return segState}};
 })();
 </script>
 <script>
