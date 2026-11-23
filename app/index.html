@@ -321,7 +321,7 @@ const PARAMS = {
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
   light:   [{k:'clear',label:'Borrar dibujo',button:true,act:() => lpClear()},{k:'only',label:'Solo luz que se mueve',toggle:true,v:1},{k:'marker',label:'Mostrar luz detectada',toggle:true,v:1},{k:'thr',label:'Exigencia de luz',min:1,max:10,v:7},{k:'fade',label:'Se borra solo',min:0,max:10,v:0},{k:'bg',label:'Fondo',min:0,max:10,v:7},{k:'glow',label:'Resplandor',min:0,max:10,v:5},{k:'rainbow',label:'Arcoíris',toggle:true,v:0}],
   hockney: [{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
-  dm:      [{k:'swap',label:'Cambio a lo nuevo (lento → rápido)',min:0,max:10,v:2},{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:0},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:2},{k:'resid',label:'Mezcla de colores',min:0,max:10,v:0},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:1}],
+  dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:8},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:5},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:7},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:1}],
   normal:  []
 };
 const P = {thermal:{pal:'iron'}}; for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
@@ -1196,17 +1196,7 @@ function datamosh(t){
         out[o] = r0; out[o+1] = g0; out[o+2] = b0; out[o+3] = 255;
       }
     }
-    // 4) lo nuevo entra de a poco, bloque a bloque (como pixeles que se van cambiando): cada cuadro algunos bloques
-    //    al azar toman la imagen real.
-    if(p.swap > 0){
-      const pr = 0.0035*p.swap*p.swap/3 + 0.002*p.swap, bw = Math.max(2, Math.round(bs*kx/2)), bh = Math.max(2, Math.round(bs*ky/2));
-      for(let y0 = 0; y0 < mh; y0 += bh) for(let x0 = 0; x0 < mw; x0 += bw){
-        if(Math.random() >= pr) continue;
-        const y1 = Math.min(mh, y0 + bh), x1 = Math.min(mw, x0 + bw);
-        for(let y = y0; y < y1; y++){ const r = (y*mw + x0)*4, e = (y*mw + x1)*4; for(let q = r; q < e; q++) out[q] = Lc[q]; }
-      }
-    }
-    // 5) un poquito de la imagen real se filtra (opcional) para que se vaya recuperando
+    // 4) un poquito de la imagen real se filtra (opcional) para que se vaya recuperando
     if(p.leak > 0){ const L = live(), a = p.leak*0.012, ia = 1 - a; for(let i = 0; i < out.length; i += 4){ out[i] = out[i]*ia + L[i]*a; out[i+1] = out[i+1]*ia + L[i+1]*a; out[i+2] = out[i+2]*ia + L[i+2]*a; } }
     dmPix.set(out);
     dmBuf.getContext('2d').putImageData(dmImg, 0, 0);
