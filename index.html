@@ -13,6 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<script>window.FLAMI_SOLO = ["cas"];</script>
 </head>
 <body>
 <title>FLAMI CAM</title>
@@ -168,6 +169,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 #btn-flip{order:0}.shoot{order:1}
 #params{position:absolute;z-index:5;left:max(12px,env(safe-area-inset-left,0px));right:98px;bottom:max(12px,env(safe-area-inset-bottom,0px));
   max-height:45%;overflow:auto;background:rgba(24,22,30,.94);border:1px solid var(--line);border-radius:14px;padding:12px}
+.beta{font:700 .62rem/1 var(--mono);letter-spacing:.08em;color:#1c1530;background:#ffd23f;padding:4px 7px;border-radius:999px;transform:rotate(3deg)}
 </style>
 
 <div id="app">
@@ -304,6 +306,10 @@ const FILTERS = [
   {id:'light',   name:'Luz',              sw:'radial-gradient(circle at 30% 70%,#fff 0 6%,transparent 7%),conic-gradient(from 200deg at 50% 50%,#ff3fa4,#ffd23f,#3fffb2,#3fa4ff,#ff3fa4)', glyph:''},
   {id:'hockney', name:'Collage',          sw:'conic-gradient(from 20deg,#efebe3 0 25%,#8a8173 0 40%,#d9d2c4 0 62%,#4c5560 0 78%,#efebe3 0)'},
 ];
+// Fase de prueba (solo la app del celular): window.FLAMI_SOLO lista los efectos que se muestran.
+// Los demás siguen en el código, solo quedan ocultos. Para volver a mostrar todos, se quita esa línea en build.sh.
+const SOLO = Array.isArray(window.FLAMI_SOLO) ? window.FLAMI_SOLO : null;
+if(SOLO){ for(let i = FILTERS.length - 1; i >= 0; i--) if(!SOLO.includes(FILTERS[i].id)) FILTERS.splice(i, 1); }
 const PARAMS = {
   thermal: [{k:'pal',label:'Cambiar colores',button:true,act:() => togglePal()},{k:'detail',label:'Detalle',min:1,max:10,v:5},{k:'soft',label:'Suavizado',min:0,max:6,v:1},{k:'scale',label:'Escala °C',toggle:true,v:1}],
   offset:  [{k:'reg',label:'Registro',min:1,max:20,v:6},{k:'levels',label:'Tonos',min:2,max:6,v:3},{k:'black',label:'Negro',min:0,max:10,v:5},{k:'bright',label:'Brillo',min:40,max:120,v:85},{k:'random',label:'Movimiento',toggle:true,v:1},{k:'bg',label:'Fondo también',toggle:true,v:0}],
@@ -1236,6 +1242,8 @@ $('#g-share').addEventListener('click', async () => {
 
 /* ---------- arranque ---------- */
 try{ const saved = localStorage.getItem('camara-rara-filtro'); if(saved === 'iron' || saved === 'rainbow'){ filter = 'thermal'; if(!localStorage.getItem('camara-rara-paleta')) P.thermal.pal = saved; } else if(saved && PARAMS[saved]) filter = saved; }catch(e){}
+if(SOLO && !SOLO.includes(filter)) filter = SOLO[0];
+if(SOLO){ const b = document.createElement('span'); b.className = 'beta'; b.textContent = 'PRUEBA'; document.querySelector('.banner h1').after(b); }
 setFilter(filter, false);
 useDemo();
 startCamera();
