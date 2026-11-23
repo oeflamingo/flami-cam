@@ -321,7 +321,7 @@ const PARAMS = {
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
   light:   [{k:'clear',label:'Borrar dibujo',button:true,act:() => lpClear()},{k:'only',label:'Solo luz que se mueve',toggle:true,v:1},{k:'marker',label:'Mostrar luz detectada',toggle:true,v:1},{k:'thr',label:'Exigencia de luz',min:1,max:10,v:7},{k:'fade',label:'Se borra solo',min:0,max:10,v:0},{k:'bg',label:'Fondo',min:0,max:10,v:7},{k:'glow',label:'Resplandor',min:0,max:10,v:5},{k:'rainbow',label:'Arcoíris',toggle:true,v:0}],
   hockney: [{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
-  dm:      [{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'drag',label:'Arrastre',min:0,max:10,v:4},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'auto',label:'Refresco solo (seg.)',min:0,max:10,v:0}],
+  dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:6},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:3},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:8},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:4},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:0}],
   normal:  []
 };
 const P = {thermal:{pal:'iron'}}; for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
@@ -1058,6 +1058,7 @@ const hasVFC = 'requestVideoFrameCallback' in HTMLVideoElement.prototype;
    El análisis se hace a baja resolución (~192 px) para que vaya fluido en el celular. ---------- */
 let dmOn = false, dmHeld = false, dmDownT = 0, dmWasOn = false;
 let dmBuf = mk(2,2), dmTmp = mk(2,2), dmA = mk(2,2), dmAx = dmA.getContext('2d', {willReadFrequently:true});
+let dmL = mk(2,2), dmLx = dmL.getContext('2d', {willReadFrequently:true}), dmPix = null, dmOut = null, dmImg = null, dmMs = null, dmMW = 0, dmMH = 0, dmLC = null, dmLP = null;
 let dmPrev = null, dmCur = null, dmMv = null, dmAW = 0, dmAH = 0, dmBS = 0, dmLastCap = -1, dmFrames = 0, dmNeedKey = true, dmKeyT = 0, dmWas = false;
 const dmActive = () => filter === 'dm' && (dmOn || dmHeld);
 function dmSync(){
@@ -1078,7 +1079,6 @@ function dmSad(x0, y0, bw, bh, dx, dy, aw, ah, lim){
 }
 function datamosh(t){
   const p = P.dm;
-  if(dmBuf.width !== W || dmBuf.height !== H){ dmBuf.width = dmTmp.width = W; dmBuf.height = dmTmp.height = H; dmNeedKey = true; }
   const sc = 192/Math.max(W, H), aw = Math.max(16, Math.round(W*sc)), ah = Math.max(16, Math.round(H*sc));
   const bs = [4,6,8,10,12,16][p.blk - 1] || 8, nx = Math.ceil(aw/bs), ny = Math.ceil(ah/bs);
   if(aw !== dmAW || ah !== dmAH){ dmAW = aw; dmAH = ah; dmA.width = aw; dmA.height = ah; dmPrev = new Uint8Array(aw*ah); dmCur = new Uint8Array(aw*ah); dmFrames = 0; dmLastCap = -1; }
@@ -1097,14 +1097,34 @@ function datamosh(t){
     dmFrames++;
   }
   if(!act){ vctx.drawImage(ago(0), 0, 0); return; }
-  const bx = dmBuf.getContext('2d');
+  // imagen "derretida" a resolución media (~480 px) para poder moverla píxel a píxel
+  const s2 = Math.min(1, 480/Math.max(W, H)), mw = Math.max(16, Math.round(W*s2)), mh = Math.max(16, Math.round(H*s2));
+  if(mw !== dmMW || mh !== dmMH){
+    dmMW = mw; dmMH = mh; dmL.width = dmBuf.width = mw; dmL.height = dmBuf.height = mh;
+    dmImg = dmBuf.getContext('2d').createImageData(mw, mh); dmPix = new Uint8ClampedArray(mw*mh*4); dmOut = dmImg.data; dmLC = new Uint8ClampedArray(mw*mh*4); dmLP = new Uint8ClampedArray(mw*mh*4); dmNeedKey = true;
+  }
+  const live = () => { dmLx.drawImage(ago(0), 0, 0, mw, mh); return dmLx.getImageData(0, 0, mw, mh).data; };
+  if(fresh){ const sw = dmLP; dmLP = dmLC; dmLC = sw; dmLC.set(live()); }
   const auto = p.auto > 0 && t - dmKeyT > p.auto*1000;
+  // ¿cambió la escena de golpe? (corte en un video) → un códec mandaría un cuadro clave nuevo: se bota, como en el datamosh real
+  let cut = false;
+  if(fresh && dmFrames >= 2 && !dmNeedKey){
+    let d = 0, c = 0; for(let i = 0; i < dmLC.length; i += 64){ d += Math.abs(dmLC[i] - dmLP[i]) + Math.abs(dmLC[i+1] - dmLP[i+1]) + Math.abs(dmLC[i+2] - dmLP[i+2]); c++; }
+    cut = d/c > 90;
+  }
   if(dmNeedKey || auto){
+    // cuadro clave: al apretar MEZCLAR se usa una imagen de hace un ratito (así lo que haces AHORA arrastra la imagen vieja)
+    const back = dmNeedKey ? Math.min(count - 1, Math.round(p.back*4)) : 0;
     dmNeedKey = false; dmKeyT = t; dmMv.fill(0);
-    bx.globalAlpha = 1; bx.drawImage(ago(0), 0, 0);
+    dmLx.drawImage(ago(back), 0, 0, mw, mh); dmPix.set(dmLx.getImageData(0, 0, mw, mh).data); dmOut.set(dmPix);
+    dmBuf.getContext('2d').putImageData(dmImg, 0, 0);
+  }else if(cut){
+    dmMv.fill(0);
   }else if(fresh && dmFrames >= 2){
-    const mult = 0.4 + p.mult*0.26, keep = p.drag/10*0.93, maxV = bs*3, k = W/aw, ky = H/ah;
+    const mult = p.mult/5, keep = p.drag/10*0.95, maxV = bs*3;
     // 1) vectores de movimiento por bloque (búsqueda en 3 pasos, ±7 px)
+    if(!dmMs || dmMs.length !== dmMv.length) dmMs = new Float32Array(dmMv.length);
+    const raw = dmMs;
     for(let j = 0; j < ny; j++) for(let i = 0; i < nx; i++){
       const x0 = i*bs, y0 = j*bs, bw = Math.min(bs, aw - x0), bh = Math.min(bs, ah - y0), n = bw*bh;
       const s0 = dmSad(x0, y0, bw, bh, 0, 0, aw, ah, 1e9);
@@ -1113,32 +1133,75 @@ function datamosh(t){
         let bx2 = cx, by2 = cy;
         for(let dy = -st; dy <= st; dy += st) for(let dx = -st; dx <= st; dx += st){
           if(!dx && !dy) continue;
-          const s = dmSad(x0, y0, bw, bh, cx + dx, cy + dy, aw, ah, best);
-          if(s < best){ best = s; bx2 = cx + dx; by2 = cy + dy; }
+          const sd = dmSad(x0, y0, bw, bh, cx + dx, cy + dy, aw, ah, best);
+          if(sd < best){ best = sd; bx2 = cx + dx; by2 = cy + dy; }
         }
         cx = bx2; cy = by2;
       }
-      // el ruido de la cámara no cuenta como movimiento
-      if(s0 < n*5 || best > s0*0.8){ cx = 0; cy = 0; }
+      if(s0 < n*6 || best > s0*0.75){ cx = 0; cy = 0; }   // el ruido de la cámara no cuenta como movimiento
+      raw[(j*nx + i)*2] = cx; raw[(j*nx + i)*2 + 1] = cy;
+    }
+    // 2) se suavizan los vectores (mediana con los vecinos): quita los cuadritos sueltos y deja un flujo parejo
+    const tmp = [0,0,0,0,0,0,0,0,0], med = (i, j, c) => {
+      let q = 0;
+      for(let b = -1; b <= 1; b++) for(let a = -1; a <= 1; a++){ const ii = clamp(i + a, 0, nx - 1), jj = clamp(j + b, 0, ny - 1); tmp[q++] = raw[(jj*nx + ii)*2 + c]; }
+      tmp.sort((u, v) => u - v); return tmp[4];
+    };
+    for(let j = 0; j < ny; j++) for(let i = 0; i < nx; i++){
       const m = (j*nx + i)*2;
+      const cx = med(i, j, 0), cy = med(i, j, 1);
       let vx = dmMv[m]*keep + cx*mult, vy = dmMv[m+1]*keep + cy*mult;
       const len = Math.hypot(vx, vy); if(len > maxV){ vx *= maxV/len; vy *= maxV/len; }
       dmMv[m] = vx; dmMv[m+1] = vy;
     }
-    // 2) se mueven los bloques de la imagen vieja según esos vectores (sin refrescar)
-    const tx = dmTmp.getContext('2d'); tx.drawImage(dmBuf, 0, 0);
-    bx.globalAlpha = 1;
-    for(let j = 0; j < ny; j++) for(let i = 0; i < nx; i++){
-      const m = (j*nx + i)*2, vx = dmMv[m], vy = dmMv[m+1];
-      if(Math.abs(vx) < 0.05 && Math.abs(vy) < 0.05) continue;
-      const dx = i*bs*k, dy = j*bs*ky, w = Math.min(bs*k, W - dx), h = Math.min(bs*ky, H - dy);
-      const sx = clamp(dx + vx*k, 0, W - w), sy = clamp(dy + vy*ky, 0, H - h);
-      bx.drawImage(dmTmp, sx, sy, w, h, dx, dy, w, h);
+    // 3) cada píxel de la imagen vieja se arrastra según el flujo (sin refrescar): así se derrite y chorrea
+    // 3) como un video al que le borraron el cuadro clave: cada bloque de la imagen vieja se mueve con su vector
+    //    (bloques duros, como un códec) y encima se suma la "diferencia" del cuadro nuevo, así la escena nueva
+    //    se cuela con los colores de la vieja
+    const kx = mw/aw, ky = mh/ah, src = dmPix, out = dmOut, mv = dmMv, smooth = p.smooth, R = p.resid/10, Lc = dmLC, Lp = dmLP;
+    for(let y = 0; y < mh; y++){
+      const fy = (y/ky)/bs - 0.5; let j0 = Math.floor(fy), ty = fy - j0; let j1 = j0 + 1;
+      if(j0 < 0){ j0 = 0; ty = 0; } if(j1 > ny - 1) j1 = ny - 1; if(j0 > ny - 1) j0 = ny - 1;
+      const jb = clamp(Math.floor((y/ky)/bs), 0, ny - 1);
+      for(let x = 0; x < mw; x++){
+        let vx, vy;
+        const mb = (jb*nx + clamp(Math.floor((x/kx)/bs), 0, nx - 1))*2;
+        if(!smooth){ vx = mv[mb]; vy = mv[mb+1]; }
+        else{
+          const fx = (x/kx)/bs - 0.5; let i0 = Math.floor(fx), tx = fx - i0, i1 = i0 + 1;
+          if(i0 < 0){ i0 = 0; tx = 0; } if(i1 > nx - 1) i1 = nx - 1; if(i0 > nx - 1) i0 = nx - 1;
+          const a = (j0*nx + i0)*2, b = (j0*nx + i1)*2, c = (j1*nx + i0)*2, d = (j1*nx + i1)*2;
+          vx = (mv[a]*(1 - tx) + mv[b]*tx)*(1 - ty) + (mv[c]*(1 - tx) + mv[d]*tx)*ty;
+          vy = (mv[a+1]*(1 - tx) + mv[b+1]*tx)*(1 - ty) + (mv[c+1]*(1 - tx) + mv[d+1]*tx)*ty;
+        }
+        const o = (y*mw + x)*4;
+        let r0, g0, b0;
+        if(vx > -0.02 && vx < 0.02 && vy > -0.02 && vy < 0.02){ r0 = src[o]; g0 = src[o+1]; b0 = src[o+2]; }
+        else{
+          let sx = x + vx*kx, sy = y + vy*ky;
+          sx = sx < 0 ? 0 : sx > mw - 1.001 ? mw - 1.001 : sx; sy = sy < 0 ? 0 : sy > mh - 1.001 ? mh - 1.001 : sy;
+          const x0 = sx | 0, y0 = sy | 0, ax = sx - x0, ay = sy - y0, q = (y0*mw + x0)*4, r = q + mw*4;
+          const w00 = (1 - ax)*(1 - ay), w10 = ax*(1 - ay), w01 = (1 - ax)*ay, w11 = ax*ay;
+          r0 = src[q]*w00   + src[q+4]*w10 + src[r]*w01   + src[r+4]*w11;
+          g0 = src[q+1]*w00 + src[q+5]*w10 + src[r+1]*w01 + src[r+5]*w11;
+          b0 = src[q+2]*w00 + src[q+6]*w10 + src[r+2]*w01 + src[r+6]*w11;
+        }
+        if(R > 0){
+          // diferencia entre el cuadro nuevo y el anterior ya movido (lo que un códec guarda como "residuo")
+          const px = clamp(Math.round(x + raw[mb]*kx), 0, mw - 1), py = clamp(Math.round(y + raw[mb+1]*ky), 0, mh - 1), q = (py*mw + px)*4;
+          let dr = Lc[o] - Lp[q], dg = Lc[o+1] - Lp[q+1], db = Lc[o+2] - Lp[q+2];
+          const e = (dr < 0 ? -dr : dr) + (dg < 0 ? -dg : dg) + (db < 0 ? -db : db);
+          if(e > 24){ r0 += dr*R; g0 += dg*R; b0 += db*R; }   // lo chico es ruido de la cámara: no se suma
+        }
+        out[o] = r0; out[o+1] = g0; out[o+2] = b0; out[o+3] = 255;
+      }
     }
-    // 3) un poquito de la imagen real se filtra (opcional) para que se vaya recuperando
-    if(p.leak > 0){ bx.globalAlpha = p.leak*0.012; bx.drawImage(ago(0), 0, 0); bx.globalAlpha = 1; }
+    // 4) un poquito de la imagen real se filtra (opcional) para que se vaya recuperando
+    if(p.leak > 0){ const L = live(), a = p.leak*0.012, ia = 1 - a; for(let i = 0; i < out.length; i += 4){ out[i] = out[i]*ia + L[i]*a; out[i+1] = out[i+1]*ia + L[i+1]*a; out[i+2] = out[i+2]*ia + L[i+2]*a; } }
+    dmPix.set(out);
+    dmBuf.getContext('2d').putImageData(dmImg, 0, 0);
   }
-  vctx.drawImage(dmBuf, 0, 0);
+  vctx.drawImage(dmBuf, 0, 0, W, H);
 }
 let vfNew = true;
 if(hasVFC){ const onVF = () => { vfNew = true; video.requestVideoFrameCallback(onVF); }; video.requestVideoFrameCallback(onVF); }
