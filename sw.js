@@ -1,18 +1,21 @@
 // FLAMI CAM: guarda la app para que abra rápido y funcione sin internet (después de la primera vez).
-const VERSION = 'flami-cam-v4';
+const VERSION = 'flami-cam-v5';
+// La versión definitiva vive en app/ con su propia memoria: este no la toca.
+const APP = new URL('app/', self.registration.scope).pathname;
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('flami-cam-v') && k !== VERSION).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  if (url.origin === location.origin && url.pathname.startsWith(APP)) return;
   if (req.mode === 'navigate' || url.origin === location.origin) {
     // La app: primero internet (para tener siempre la última versión), si no hay, la guardada.
     // cache:'no-cache' pide siempre la versión nueva a internet (sin la copia guardada del navegador).
