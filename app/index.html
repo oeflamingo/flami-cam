@@ -257,6 +257,122 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .hk-bg-pick{background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red)}
 .hk-bg-pick input{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);opacity:0;cursor:pointer;border:0;padding:0}
 #hk-save{background:#ff3fa4!important;border-color:#ff3fa4!important;font-weight:800}
+/* ---------- Barras de arriba (PC): al lado del botón de foto, no debajo ---------- */
+#o3-bar,#of-bar,#hk-bar{top:12px;left:calc(max(16px,env(safe-area-inset-left,0px)) + 52px)}
+#app:has(#media-bar:not([hidden])) :is(#o3-bar,#of-bar,#hk-bar){top:64px;left:max(12px,env(safe-area-inset-left,0px))}
+.hk-tools{display:contents}
+/* Content aware / Estirado: con los ajustes abiertos, los rieles no chocan con el panel */
+#app:has(#params:not([hidden])):has(#st-rails:not([hidden])) #params{left:calc(max(14px,env(safe-area-inset-left,0px)) + 62px)}
+#app:has(#params:not([hidden])) .rail-h{bottom:auto;top:64px}
+
+/* ---------- Aviso: aquí se ajusta el filtro ---------- */
+#tune-tip{position:fixed;z-index:15;background:#ff3fa4;color:#fff;font:700 .82rem/1.25 var(--body);padding:8px 12px;border-radius:12px;max-width:190px;
+  box-shadow:0 6px 20px rgba(0,0,0,.45);pointer-events:none;opacity:0;transform:scale(.92);transition:opacity .3s,transform .3s}
+#tune-tip.on{opacity:1;transform:none}
+#tune-tip::after{content:'';position:absolute;width:12px;height:12px;background:#ff3fa4;transform:rotate(45deg)}
+#tune-tip.left::after{right:-5px;top:calc(50% - 6px)}
+#tune-tip.up::after{bottom:-5px;left:var(--ax,20px)}
+#tune.hint{animation:tunepulse 1s ease-in-out 3}
+@keyframes tunepulse{50%{box-shadow:0 0 0 6px rgba(255,63,164,.55);border-color:#ff3fa4}}
+@media (prefers-reduced-motion:reduce){#tune-tip{transition:none}#tune.hint{animation:none}}
+
+/* =====================================================================
+   CELULAR (vertical): diseño propio. Todo lo de aquí abajo SOLO aplica
+   en pantallas angostas, así la web de computador no cambia.
+   ===================================================================== */
+@media (max-width:600px) and (orientation:portrait){
+  #app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto}
+  .banner{padding-block:2px;gap:6px}
+  .banner svg{width:24px;height:30px;margin-block:-1px}
+  .banner h1{font-size:1.1rem}
+  #stage{grid-column:1;grid-row:2}
+  .topbar{padding:8px 10px}
+  .iconbtn{width:38px;height:38px}
+  .pal-btn{height:38px;padding:0 12px;font-size:.8rem}
+  #btn-dm{padding:0 18px}
+  /* consola abajo: una fila de filtros y una fila de botones */
+  .console{grid-column:1;grid-row:3;width:auto;border-left:0;border-top:1px solid var(--line);gap:6px;
+    padding:6px max(8px,env(safe-area-inset-right,0px)) max(8px,env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  #rail{flex:0 0 auto;flex-direction:row;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;gap:4px;padding:1px}
+  .chip{flex:0 0 62px;width:62px;padding:4px 2px;gap:2px;border-radius:12px;font-size:.6rem}
+  .chip .sw{width:24px;height:24px}
+  .controls{display:grid;grid-template-columns:repeat(5,1fr);justify-items:center;align-items:center;gap:0}
+  .shoot{display:contents}
+  #thumb{order:1;width:42px;height:42px}
+  #tune{order:2;width:42px;height:42px}
+  #shutter{order:3;width:64px;height:64px;padding:4px;border-width:4px}
+  #btn-recvid{order:4;width:46px;height:46px}
+  #btn-flip{order:5;width:48px;height:48px}
+  #btn-flip svg{width:20px;height:20px}
+  /* ajustes: panel dentro de la consola (achica la cámara en vez de taparla) */
+  #params{position:static;order:-1;max-height:30vh;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:12px;
+    padding:8px 10px;gap:6px 14px}
+  .param:not(.toggle){flex:1 1 calc(50% - 14px);min-width:0;grid-template-columns:minmax(0,1fr) auto;gap:0 6px}
+  .param:not(.toggle) input[type=range]{min-width:0}
+  .param label{font-size:.6rem;letter-spacing:.03em}
+  .param output{font-size:.72rem;min-width:1.6em}
+  .param.toggle{font-size:.74rem}
+  .param .pill{padding:6px 10px;font-size:.76rem}
+  #status{left:10px;right:10px;bottom:6px;font-size:.6rem;padding:3px 7px;width:fit-content;max-width:calc(100% - 20px);box-sizing:border-box}
+  .rail{padding:7px}
+  .rail-v{left:8px}
+  .rail-v input{height:min(32vh,230px)}
+  .rail-h{bottom:30px}
+  .rail-h input{width:min(58vw,260px)}
+  #app:has(#params:not([hidden])) .rail-h{top:auto;bottom:30px}
+  #app:has(#params:not([hidden])):has(#st-rails:not([hidden])) #params{left:auto}
+  #toast{bottom:calc(190px + env(safe-area-inset-bottom,0px))}
+  #notice{top:56px;font-size:.8rem}
+  /* barras de arriba: compactas, una línea cada una, se deslizan de lado */
+  #o3-bar,#of-bar,#hk-bar{top:8px;left:56px;right:8px;gap:5px}
+  #app:has(#media-bar:not([hidden])) :is(#o3-bar,#of-bar,#hk-bar){top:56px;left:8px}
+  .o3-row,.of-row,.hk-tools,#hk-bgs{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;max-width:100%;box-sizing:border-box}
+  :is(.o3-row,.of-row,.hk-tools,#hk-bgs)::-webkit-scrollbar{display:none}
+  .o3-row:first-child{width:100%}
+  #o3-text{font-size:16px;padding:7px 12px}
+  #o3-bar .pill,#hk-bar .pill{flex:0 0 auto;padding:5px 10px!important;font-size:.74rem!important}
+  #o3-make{padding:5px 14px!important}
+  #hk-bar{flex-direction:column;align-items:flex-start}
+  .hk-tools{display:flex;gap:5px;pointer-events:auto}
+  #hk-bgs{padding:4px 8px}
+  .hk-bg{width:22px;height:22px}
+  .of-row{padding:4px 6px;gap:5px}
+  .of-row:not(#of-gamas){border-radius:999px}
+  .of-gama{font-size:.7rem;padding:2px 8px 2px 3px}
+  .of-gama i{width:24px;height:15px}
+  .of-ink{width:24px;height:24px}
+  .of-lbl{font-size:.64rem}
+  #of-swap{padding:4px 9px;font-size:.72rem;flex:0 0 auto}
+  /* Stop motion: más compacto */
+  #sm-ed{gap:8px}
+  #sm-ed h2{font-size:1rem}
+  #sm-ed header .pill{padding:6px 11px;font-size:.78rem}
+  .sm-row{gap:6px}
+  .sm-row .pill{padding:6px 10px;font-size:.74rem}
+  .sm-speed{font-size:.76rem}
+  .sm-speed input[type=range]{width:min(34vw,160px)}
+  .sm-speed output{min-width:5.6em}
+  #sm-strip{min-height:56px}
+  #sm-strip button{width:54px;height:54px}
+  /* galería */
+  #gallery{gap:8px}
+  #gallery h2{font-size:1rem}
+  #gallery header .pill,.gactions .pill{padding:7px 12px;font-size:.8rem}
+  #strip img{width:48px;height:48px}
+  #o3c-view{max-height:56vh}
+  .o3c-actions .pill{padding:7px 11px;font-size:.8rem}
+}
+/* Celular acostado: barra de arriba más chica, consola al costado más angosta */
+@media (max-height:500px) and (orientation:landscape){
+  .banner{padding-block:1px}
+  .banner svg{width:20px;height:24px}
+  .banner h1{font-size:1rem}
+  .console{width:76px}
+  #shutter{width:54px;height:54px}
+  #btn-recvid{width:42px;height:42px}
+  #btn-flip{width:44px;height:44px}
+  #params{right:88px;max-height:60%}
+}
 </style>
 
 <div id="app">
@@ -323,12 +439,14 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     </div>
     <div id="o3-ring"></div>
     <div id="hk-bar" hidden>
+      <div class="hk-tools">
       <button class="pill" id="hk-zout" aria-label="Alejar">🔍−</button>
       <button class="pill" id="hk-zlbl" title="Volver a 1x">1,0x</button>
       <button class="pill" id="hk-zin" aria-label="Acercar">🔍+</button>
       <button class="pill" id="hk-undo">↶ Borrar foto</button>
       <button class="pill" id="hk-clear">Empezar de nuevo</button>
       <button class="pill" id="hk-save">💾 Guardar collage</button>
+      </div>
       <div id="hk-bgs" role="toolbar" aria-label="Fondo"><span>Fondo</span></div>
     </div>
     <div id="of-bar" hidden>
@@ -411,6 +529,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   </div>
 </div>
 <div id="toast" role="status"></div>
+<div id="tune-tip" aria-hidden="true">Toca aquí para ajustar el filtro</div>
 <input type="file" id="file" accept="image/*,video/*" hidden>
 <div id="drop-hint" hidden><div>Suelta tu foto o video aquí</div></div>
 
@@ -2419,6 +2538,7 @@ function setFilter(id, announce = true){
   dmOn = false; dmHeld = false; dmWas = false;
   if(id === 'dm') for(const q of PARAMS.dm) if(!q.button) P.dm[q.k] = q.v;   // al entrar, siempre parte con la configuración principal
   o3SyncBar(); smSync(); ofSyncBar(); hkSync(); SM.autoT = performance.now(); buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
+  if(announce) setTimeout(showTuneTip, 450);
   if(announce){ const el = $('#flt-name'); el.textContent = FILTERS.find(f => f.id === id).name; el.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => el.classList.remove('on'), 700); }
   try{ localStorage.setItem('camara-rara-filtro', id); }catch(e){}
 }
@@ -2452,7 +2572,24 @@ function buildParams(){
     box.appendChild(wrap);
   }
 }
+/* aviso que aparece al entrar a un filtro y se borra solo: apunta al botón de ajustes */
+let tipT = 0;
+function hideTuneTip(){ clearTimeout(tipT); $('#tune-tip').classList.remove('on'); $('#tune').classList.remove('hint'); }
+function showTuneTip(){
+  const t = $('#tune'), tip = $('#tune-tip');
+  hideTuneTip();
+  if(t.disabled || t.getAttribute('aria-pressed') === 'true' || !t.offsetParent) return;
+  const r = t.getBoundingClientRect(), W = innerWidth;
+  tip.classList.remove('left', 'up'); tip.style.left = tip.style.top = '';
+  tip.style.visibility = 'hidden'; tip.classList.add('on'); const tw = tip.offsetWidth, th = tip.offsetHeight;
+  if(r.left > tw + 24){ tip.classList.add('left'); tip.style.left = (r.left - tw - 12) + 'px'; tip.style.top = (r.top + r.height/2 - th/2) + 'px'; }
+  else { tip.classList.add('up'); const x = Math.max(8, Math.min(W - tw - 8, r.left + r.width/2 - 22)); tip.style.left = x + 'px'; tip.style.top = (r.top - th - 12) + 'px'; tip.style.setProperty('--ax', (r.left + r.width/2 - x - 6) + 'px'); }
+  tip.classList.remove('on'); void tip.offsetWidth; tip.style.visibility = '';
+  tip.classList.add('on'); t.classList.add('hint');
+  tipT = setTimeout(hideTuneTip, 3200);
+}
 $('#tune').addEventListener('click', () => {
+  hideTuneTip();
   const on = $('#tune').getAttribute('aria-pressed') !== 'true';
   $('#tune').setAttribute('aria-pressed', on); $('#params').hidden = !on;
 });
