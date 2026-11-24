@@ -199,6 +199,58 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .o3c-vol input{accent-color:#ff7eb6;width:18px;height:18px}
 #o3c-ok:disabled{opacity:.45}
 .beta{font:700 .62rem/1 var(--mono);letter-spacing:.08em;color:#1c1530;background:#ffd23f;padding:4px 7px;border-radius:999px;transform:rotate(3deg)}
+
+/* ---------- Stop motion ---------- */
+#btn-sm{background:#ff3fa4;border-color:#ff3fa4;color:#fff;font-weight:800}
+#sm-ed{position:fixed;inset:0;z-index:22;background:rgba(10,9,13,.97);display:flex;flex-direction:column;gap:10px;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+#sm-ed[hidden]{display:none}
+#sm-ed header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#sm-ed h2{margin:0;font-family:var(--display);font-weight:800;font-size:1.2rem}
+#sm-ed h2 small{font-family:var(--mono);font-weight:400;font-size:.75rem;color:var(--muted);margin-left:6px}
+#sm-prev{flex:1;min-height:0;width:100%;object-fit:contain;background:#000;border-radius:12px}
+.sm-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+.sm-row .pill{padding:7px 12px;font-size:.82rem}
+.sm-speed{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--fg)}
+.sm-speed input[type=range]{width:min(42vw,200px);accent-color:#ff7eb6}
+.sm-speed output{font-family:var(--mono);min-width:6.5em}
+.sm-chk{display:flex;align-items:center;gap:6px;font-size:.82rem}
+.sm-chk input{accent-color:#ff7eb6;width:18px;height:18px}
+#sm-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;min-height:66px}
+#sm-strip button{position:relative;flex:0 0 auto;width:64px;height:64px;padding:0;border-radius:8px;border:2px solid transparent;background:#000;cursor:pointer;overflow:hidden}
+#sm-strip button img{width:100%;height:100%;object-fit:cover;display:block}
+#sm-strip button span{position:absolute;left:3px;bottom:2px;font:600 .62rem/1 var(--mono);color:#fff;text-shadow:0 1px 3px #000}
+#sm-strip button.sel{border-color:#ff7eb6}
+#sm-strip button.now{outline:2px solid #fff;outline-offset:-4px}
+#sm-save{background:#ff3fa4;border-color:#ff3fa4;color:#fff;font-weight:800}
+#sm-save:disabled,#sm-ed .pill:disabled{opacity:.45}
+
+/* ---------- Desfase: colores ---------- */
+#of-bar{position:absolute;z-index:4;top:64px;left:max(12px,env(safe-area-inset-left,0px));right:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;pointer-events:none}
+#of-bar[hidden]{display:none}
+.of-row{display:flex;gap:6px;max-width:100%;pointer-events:auto;align-items:center;padding:5px 7px;border-radius:999px;background:rgba(20,18,26,.7);
+  border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#of-gamas{overflow-x:auto;scrollbar-width:none}
+.of-row:not(#of-gamas){flex-wrap:wrap;border-radius:18px}
+@media (max-width:520px){.of-ink{width:26px;height:26px}#of-swap{padding:5px 9px}}
+#of-gamas::-webkit-scrollbar{display:none}
+.of-gama{flex:0 0 auto;display:flex;align-items:center;gap:6px;border:1px solid transparent;background:transparent;color:#fff;border-radius:999px;padding:3px 9px 3px 4px;font-size:.76rem;cursor:pointer;white-space:nowrap}
+.of-gama i{display:flex;width:30px;height:18px;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.35)}
+.of-gama i b{flex:1}
+.of-gama[aria-pressed="true"]{border-color:#ff7eb6;background:rgba(255,126,182,.18)}
+.of-ink{position:relative;width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.8);cursor:pointer;flex:0 0 auto;overflow:hidden}
+.of-ink input{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);opacity:0;cursor:pointer;border:0;padding:0}
+.of-ink.paper{border-radius:7px}
+.of-lbl{font-size:.7rem;color:var(--muted);margin-left:2px}
+#of-swap{padding:6px 11px;font-size:.78rem;background:#ff3fa4;border-color:#ff3fa4;color:#fff;font-weight:800}
+
+/* ---------- Collage armado (joiner) ---------- */
+#hk-bar{position:absolute;z-index:4;top:64px;left:max(12px,env(safe-area-inset-left,0px));right:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+#hk-bar[hidden]{display:none}
+#hk-bar .pill{pointer-events:auto;padding:6px 12px;font-size:.8rem;background:rgba(20,18,26,.72);color:#fff;border-color:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#hk-bar .pill:disabled{opacity:.45}
+#hk-mode[aria-pressed="true"]{background:#ff7eb6!important;color:#1c1530!important}
+#hk-save{background:#ff3fa4!important;border-color:#ff3fa4!important;font-weight:800}
 </style>
 
 <div id="app">
@@ -239,6 +291,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <div class="tools">
         <button class="pill pal-btn" id="btn-lpclear" hidden title="Borrar dibujo"><i style="background:radial-gradient(circle,#fff 0 30%,#ff7eb6 60%)"></i>Borrar dibujo</button>
         <button class="pill pal-btn" id="btn-dm" hidden title="Mantén apretado para mezclar los cuadros (un toque lo deja pegado)">MEZCLAR</button>
+        <button class="pill pal-btn" id="btn-sm" hidden title="Ver y editar tu stop motion">🎞️ Editar (0)</button>
         <button class="pill pal-btn" id="btn-pal" hidden title="Cambiar colores"><i></i>Cambiar colores</button>
         <button class="iconbtn" id="btn-source" title="Abrir foto o video" aria-label="Abrir una foto o video del computador">
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg>
@@ -263,6 +316,25 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <input type="file" id="o3-img" accept="image/*" hidden>
     </div>
     <div id="o3-ring"></div>
+    <div id="hk-bar" hidden>
+      <button class="pill" id="hk-mode" aria-pressed="false">Dedo: mover cámara</button>
+      <button class="pill" id="hk-undo">↶ Borrar foto</button>
+      <button class="pill" id="hk-clear">Empezar de nuevo</button>
+      <button class="pill" id="hk-save">💾 Guardar collage</button>
+    </div>
+    <div id="of-bar" hidden>
+      <div class="of-row" id="of-gamas" role="toolbar" aria-label="Gamas de colores"></div>
+      <div class="of-row">
+        <span class="of-lbl">Tintas</span>
+        <label class="of-ink" title="Tinta 1"><input type="color" data-i="0" aria-label="Color de la tinta 1"></label>
+        <label class="of-ink" title="Tinta 2"><input type="color" data-i="1" aria-label="Color de la tinta 2"></label>
+        <label class="of-ink" title="Tinta 3"><input type="color" data-i="2" aria-label="Color de la tinta 3"></label>
+        <label class="of-ink" title="Sombra"><input type="color" data-i="3" aria-label="Color de la sombra"></label>
+        <span class="of-lbl">Papel</span>
+        <label class="of-ink paper" title="Papel (fondo)"><input type="color" data-i="4" aria-label="Color del papel"></label>
+        <button class="pill" id="of-swap" title="Intercambiar los colores entre sí">🔀 Intercambiar</button>
+      </div>
+    </div>
     <div id="rec-time" hidden><i></i><span>00:00</span></div>
   </div>
 
@@ -311,6 +383,24 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     </div>
   </div>
 </div>
+<div id="sm-ed" hidden>
+  <header><h2>Tu stop motion<small id="sm-info">0 cuadros</small></h2><button class="pill" id="sm-close">Seguir sacando fotos</button></header>
+  <canvas id="sm-prev" width="640" height="480" aria-label="Vista previa del stop motion"></canvas>
+  <div class="sm-row">
+    <button class="pill" id="sm-play">⏸ Pausar</button>
+    <label class="sm-speed">Velocidad <input type="range" id="sm-fps" min="1" max="24" step="1" value="8"><output id="sm-fps-o">8 por seg.</output></label>
+    <label class="sm-chk"><input type="checkbox" id="sm-boom"> Ida y vuelta</label>
+  </div>
+  <div id="sm-strip" role="listbox" aria-label="Cuadros"></div>
+  <div class="sm-row">
+    <button class="pill" id="sm-left" title="Mover el cuadro elegido hacia atrás">◀ Mover</button>
+    <button class="pill" id="sm-right" title="Mover el cuadro elegido hacia adelante">Mover ▶</button>
+    <button class="pill" id="sm-dup" title="Repetir el cuadro elegido (se queda más tiempo)">Repetir cuadro</button>
+    <button class="pill" id="sm-del">Borrar cuadro</button>
+    <button class="pill" id="sm-clear">Borrar todo</button>
+    <button class="pill primary" id="sm-save">💾 Guardar video</button>
+  </div>
+</div>
 <div id="toast" role="status"></div>
 <input type="file" id="file" accept="image/*,video/*" hidden>
 <div id="drop-hint" hidden><div>Suelta tu foto o video aquí</div></div>
@@ -355,6 +445,7 @@ const FILTERS = [
   {id:'cas',     name:'Content aware',    sw:'linear-gradient(90deg,#2a2333 0 18%,#f3c9a8 18% 30%,#2a2333 30% 38%,#7fb3d2 38% 70%,#f3c9a8 70% 80%,#2a2333 80%)'},
   {id:'dm',      name:'Datamosh',         sw:'linear-gradient(180deg,#ff3fa4 0 20%,#3fd2ff 20% 34%,#2a2333 34% 48%,#ffd23f 48% 52%,#2a2333 52% 70%,#3fffb2 70% 78%,#ff3fa4 78%)'},
   {id:'obj3d',   name:'Objeto 3D',        sw:'radial-gradient(circle at 35% 30%,#fff 0 8%,#ffb3d1 14%,#ff3fa4 45%,#7a1450 75%,#2a2333 76%)'},
+  {id:'stop',    name:'Stop motion',      sw:'linear-gradient(90deg,#2a2333 0 12%,#ffb3d1 12% 30%,#2a2333 30% 36%,#ff7eb6 36% 64%,#2a2333 64% 70%,#ff3fa4 70% 88%,#2a2333 88%)'},
   {id:'hockney', name:'Collage',          sw:'conic-gradient(from 20deg,#efebe3 0 25%,#8a8173 0 40%,#d9d2c4 0 62%,#4c5560 0 78%,#efebe3 0)'},
 ];
 // Fase de prueba (solo la app del celular): window.FLAMI_SOLO lista los efectos que se muestran.
@@ -367,12 +458,18 @@ const PARAMS = {
   echo:    [{k:'copies',label:'Copias',min:2,max:8,v:5},{k:'spacing',label:'Lentitud',min:1,max:10,v:6}],
   stretch: [{k:'up',label:'Alto (estirar / aplastar)',min:-10,max:10,v:5},{k:'side',label:'Ancho (estirar / aplastar)',min:-10,max:10,v:0}],
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
-  hockney: [{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
+  hockney: null,
+  hockneyAuto: [{k:'auto',label:'Collage automático (el de antes)',toggle:true,v:0},{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
+  hockneyHand: [{k:'auto',label:'Collage automático (el de antes)',toggle:true,v:0},{k:'size',label:'Tamaño de cada foto',min:2,max:10,v:4},{k:'tilt',label:'Chueco',min:0,max:10,v:3},{k:'follow',label:'Se mueve con el celular',toggle:true,v:1},{k:'border',label:'Borde blanco',toggle:true,v:0}],
   dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:8},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:5},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:7},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:1}],
   obj3d:   [{k:'spin',label:'Girar solo',toggle:true,v:1},{k:'shadow',label:'Sombra',toggle:true,v:1},{k:'light',label:'Luz de la cámara',toggle:true,v:1},{k:'clear',label:'Borrar todos',button:true,act:() => o3Delete(true)}],
+  stop:    [{k:'ghost',label:'Fantasma del cuadro anterior',min:0,max:10,v:4},{k:'auto',label:'Foto sola cada (seg., 0 = no)',min:0,max:10,v:0},{k:'undo',label:'Borrar el último cuadro',button:true,act:() => smUndo()},{k:'edit',label:'🎞️ Ver y guardar',button:true,act:() => smOpen()}],
   normal:  []
 };
-const P = {thermal:{pal:'iron'}}; for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
+PARAMS.hockney = PARAMS.hockneyHand;
+const P = {thermal:{pal:'iron'}, hockney:{}};
+for(const f of ['hockneyAuto', 'hockneyHand']){ for(const p of PARAMS[f]) if(!p.button) P.hockney[p.k] = p.v; }
+for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
 let filter = 'thermal';
 
 /* ---------- fuente: cámara, video o demo ---------- */
@@ -565,6 +662,8 @@ function ensureSegmenter(){
     .catch(e => { console.warn(e); segState = 'failed'; refreshStatus(); });
 }
 function refreshStatus(){
+  if(filter === 'hockney' && !P.hockney.auto) return status(HK.mode === 'pieces' ? 'Arrastra una foto para moverla · 2 dedos: girar y tamaño' : HK.pieces.length ? 'Mueve el celular un poquito y saca la siguiente' : 'Saca una foto: queda pegada donde está el recuadro');
+  if(filter === 'stop') return status(SM.frames.length ? 'Mueve un poquito y saca el cuadro ' + (SM.frames.length + 1) : 'Saca una foto por cada cuadro. Entre foto y foto mueve un poquito tu objeto');
   if(filter === 'obj3d') return status(O3.objs.length ? (O3.mode === 'rot' ? '1 dedo: girar · 2 dedos: tamaño y giro' : '1 dedo: mover · 2 dedos: tamaño y giro') : 'Escribe un objeto arriba y toca Crear');
   if(filter === 'light') return status('Apunta el flash del celular a la cámara y dibuja');
   if((filter === 'dm' || filter === 'dm2')) return status(dmActive() ? '' : 'Mantén apretado MEZCLAR y muévete (un toque lo deja pegado)');
@@ -767,6 +866,41 @@ function newOffsets(){
     return [Math.round(Math.cos(a)*m), Math.round(Math.sin(a)*m)];
   });
 }
+// Colores del Desfase: 3 tintas + sombra + papel. Cada tinta "se come" la luz que no es de su color (como tinta real sobre papel).
+const OF_GAMAS = [
+  ['Clásico',   ['#00ffff','#ff00ff','#ffff00','#000000','#f4efe4']],
+  ['Riso',      ['#0078bf','#ff48b0','#ffe800','#1d1d3a','#f6f1e6']],
+  ['Neón',      ['#00e5ff','#ff2fa0','#c6ff00','#1b0033','#ffffff']],
+  ['Flamenco',  ['#ff7eb6','#ff3fa4','#ffd23f','#3a1030','#fff4f8']],
+  ['Pastel',    ['#a0e7ff','#ffb3d1','#fff3a0','#5a5470','#fffdf8']],
+  ['Vaporwave', ['#01cdfe','#ff71ce','#b967ff','#2d0b4a','#fdf2ff']],
+  ['Fuego',     ['#ff3b00','#ff9500','#ffe14f','#2a0a00','#fff6e8']],
+  ['Mar',       ['#0047ff','#00c2c7','#a5fff0','#001a33','#eefcff']],
+  ['Bosque',    ['#2e8b3a','#8a5a33','#e6e600','#102010','#f3f0e0']],
+  ['Chicle',    ['#ff5fa2','#5fd3ff','#ffe066','#7a2a8c','#ffffff']],
+  ['Sepia',     ['#7a4a1f','#b07a4a','#e8c38a','#2a1808','#f3e6cc']],
+  ['Blanco y negro', ['#6a6a6a','#9a9a9a','#cfcfcf','#000000','#ffffff']]
+];
+const OF = {ink:OF_GAMAS[0][1].slice(), gama:0};
+const OFI = new Float32Array(15);
+function ofApply(){
+  for(let i = 0; i < 4; i++) for(let ch = 0; ch < 3; ch++) OFI[i*3 + ch] = 1 - parseInt(OF.ink[i].substr(1 + ch*2, 2), 16)/255;
+  for(let ch = 0; ch < 3; ch++) OFI[12 + ch] = parseInt(OF.ink[4].substr(1 + ch*2, 2), 16);
+  try{ localStorage.setItem('flami-desfase-colores', JSON.stringify(OF)); }catch(e){}
+  ofSyncBar();
+}
+function ofSyncBar(){
+  const bar = document.getElementById('of-bar'); if(!bar) return;
+  bar.hidden = filter !== 'offset';
+  bar.querySelectorAll('.of-ink input').forEach(inp => { const c = OF.ink[+inp.dataset.i]; inp.value = c; inp.parentElement.style.background = c; });
+  bar.querySelectorAll('.of-gama').forEach((b, i) => b.setAttribute('aria-pressed', i === OF.gama));
+}
+function ofSwap(){
+  // reordena las 3 tintas entre sí (siempre a un orden distinto)
+  const a = OF.ink.slice(0, 3); let b;
+  do{ b = a.slice().sort(() => Math.random() - .5); }while(b.join() === a.join() && new Set(a).size > 1);
+  OF.ink.splice(0, 3, ...b); ofApply();
+}
 function offset(t){
   const p = P.offset, tw = Math.max(32, W >> 1), th = Math.max(24, H >> 1), n = tw*th;
   if(ofIn.width !== tw || ofIn.height !== th){
@@ -798,13 +932,15 @@ function offset(t){
     const yc = clamp(y - cy, 0, th - 1)*tw, ym = clamp(y - my2, 0, th - 1)*tw, yY = clamp(y - yy, 0, th - 1)*tw, yk = clamp(y - ky, 0, th - 1)*tw;
     for(let x=0; x<tw; x++, i++){
       const c = C[yc + clamp(x - cx, 0, tw - 1)], m = M[ym + clamp(x - mx2, 0, tw - 1)], yv = Y[yY + clamp(x - yx, 0, tw - 1)], k = K[yk + clamp(x - kx, 0, tw - 1)];
-      const j = i*4, kk = 1 - k;
-      o[j] = 244*(1 - c)*kk; o[j+1] = 239*(1 - m)*kk; o[j+2] = 228*(1 - yv)*kk;
+      const j = i*4;
+      o[j]   = OFI[12]*(1 - c*OFI[0])*(1 - m*OFI[3])*(1 - yv*OFI[6])*(1 - k*OFI[9]);
+      o[j+1] = OFI[13]*(1 - c*OFI[1])*(1 - m*OFI[4])*(1 - yv*OFI[7])*(1 - k*OFI[10]);
+      o[j+2] = OFI[14]*(1 - c*OFI[2])*(1 - m*OFI[5])*(1 - yv*OFI[8])*(1 - k*OFI[11]);
       o[j+3] = 255*Math.max(A[i], c, m, yv, k);
     }
   }
   out.putImageData(od, 0, 0);
-  if(person) vctx.drawImage(ago(0), 0, 0); else { vctx.fillStyle = '#f4efe4'; vctx.fillRect(0, 0, W, H); }
+  if(person) vctx.drawImage(ago(0), 0, 0); else { vctx.fillStyle = OF.ink[4]; vctx.fillRect(0, 0, W, H); }
   vctx.imageSmoothingEnabled = true; vctx.imageSmoothingQuality = 'high';
   vctx.drawImage(ofOut, 0, 0, W, H);
 }
@@ -1263,9 +1399,10 @@ function loop(t){
     case 'echo': echo(t); break;
     case 'stretch': stretch(); break;
     case 'cas': cas(); break;
-    case 'hockney': hockney(t); break;
+    case 'hockney': if(P.hockney.auto) hockney(t); else hkHand(t); break;
     case 'dm': datamosh(t); break;
     case 'obj3d': obj3d(t); break;
+    case 'stop': smLive(t); break;
     default: vctx.drawImage(ago(0), 0, 0);
   }
 }
@@ -2272,7 +2409,7 @@ function setFilter(id, announce = true){
   if(id === 'cas') casDrawn = -1;
   dmOn = false; dmHeld = false; dmWas = false;
   if(id === 'dm') for(const q of PARAMS.dm) if(!q.button) P.dm[q.k] = q.v;   // al entrar, siempre parte con la configuración principal
-  o3SyncBar(); buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
+  o3SyncBar(); smSync(); ofSyncBar(); hkSync(); SM.autoT = performance.now(); buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
   if(announce){ const el = $('#flt-name'); el.textContent = FILTERS.find(f => f.id === id).name; el.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => el.classList.remove('on'), 700); }
   try{ localStorage.setItem('camara-rara-filtro', id); }catch(e){}
 }
@@ -2296,7 +2433,7 @@ function buildParams(){
     }else if(p.toggle){
       wrap.className = 'param toggle';
       wrap.innerHTML = `<input type="checkbox" id="${id}" ${P[filter][p.k] ? 'checked' : ''}><label for="${id}">${p.label}</label>`;
-      wrap.querySelector('input').addEventListener('change', e => { P[filter][p.k] = e.target.checked ? 1 : 0; });
+      wrap.querySelector('input').addEventListener('change', e => { P[filter][p.k] = e.target.checked ? 1 : 0; if(filter === 'hockney' && p.k === 'auto'){ hkSetAuto(); } });
     }else{
       wrap.className = 'param';
       wrap.innerHTML = `<label for="${id}">${p.label}</label><input type="range" id="${id}" min="${p.min}" max="${p.max}" step="1" value="${P[filter][p.k]}"><output>${P[filter][p.k]}</output>`;
@@ -2379,6 +2516,8 @@ try{ const sp = localStorage.getItem('camara-rara-paleta'); if(sp === 'rainbow' 
 const shots = []; let sel = 0;
 function snap(){
   if(!W) return;
+  if(filter === 'stop') return smAdd();
+  if(filter === 'hockney' && !P.hockney.auto) return hkAdd();
   const fl = $('#flash'); fl.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => fl.classList.remove('on')));
   const name = FILTERS.find(f => f.id === filter).name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-');
   const d = new Date(), pad = n => String(n).padStart(2, '0');
@@ -2494,6 +2633,351 @@ $('#g-save').addEventListener('click', async () => {
 $('#g-share').addEventListener('click', async () => {
   const s = shots[sel]; if(!s) return;
   try{ await navigator.share({files:[new File([s.blob], s.name, {type:s.blob.type || 'image/jpeg'})], title:'FLAMI CAM'}); }catch(e){}
+});
+
+/* ---------- Stop motion: una foto por cuadro, editor y guardar como video ---------- */
+const SM = {frames:[], sel:0, fps:8, boom:false, playing:true, autoT:0, last:null, raf:0, t0:0, saving:false};
+const smPrev = $('#sm-prev'), smPx = smPrev.getContext('2d');
+function smSync(){
+  const b = $('#btn-sm'); b.hidden = filter !== 'stop';
+  b.textContent = '🎞️ Editar (' + SM.frames.length + ')'; b.disabled = !SM.frames.length;
+}
+function smLive(t){
+  vctx.drawImage(ago(0), 0, 0);
+  const g = P.stop.ghost;
+  if(SM.last && g > 0){ vctx.globalAlpha = g/10*0.7; vctx.drawImage(SM.last, 0, 0, W, H); vctx.globalAlpha = 1; }
+  const a = P.stop.auto;
+  if(a > 0 && $('#sm-ed').hidden && $('#gallery').hidden){
+    const left = a*1000 - (t - SM.autoT);
+    if(left <= 0){ SM.autoT = t; smAdd(); }
+    else { // cuenta regresiva chiquita
+      const s = Math.ceil(left/1000), r = Math.max(16, W*0.035);
+      vctx.save(); vctx.fillStyle = 'rgba(0,0,0,.55)'; vctx.beginPath(); vctx.arc(W - r*1.6, r*1.6, r, 0, 7); vctx.fill();
+      vctx.fillStyle = '#ff7eb6'; vctx.font = `800 ${r*1.1}px system-ui,sans-serif`; vctx.textAlign = 'center'; vctx.textBaseline = 'middle';
+      vctx.fillText(s, W - r*1.6, r*1.6 + 1); vctx.restore();
+    }
+  }
+}
+function smAdd(){
+  if(!W || !count || !$('#sm-ed').hidden) return;
+  if(SM.frames.length >= 300){ toast('Llegaste al máximo de 300 cuadros'); return; }
+  const fl = $('#flash'); fl.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => fl.classList.remove('on')));
+  const c = mk(W, H); c.getContext('2d').drawImage(ago(0), 0, 0);
+  const fr = {img:null, url:'', w:W, h:H, c};
+  SM.frames.push(fr); SM.last = c; SM.sel = SM.frames.length - 1; SM.autoT = performance.now();
+  c.toBlob(b => {
+    if(!b) return;
+    fr.url = URL.createObjectURL(b); const im = new Image(); im.onload = () => { fr.img = im; if(SM.last !== c) fr.c = null; }; im.src = fr.url;
+  }, 'image/jpeg', 0.9);
+  // solo se guarda en memoria la imagen completa del último cuadro (para el fantasma); los demás quedan como JPG
+  for(const f of SM.frames) if(f !== fr && f.img) f.c = null;
+  smSync(); refreshStatus();
+}
+function smUndo(){
+  if(!SM.frames.length) return;
+  smRemove(SM.frames.length - 1); toast('Último cuadro borrado');
+}
+function smRemove(i){
+  const [f] = SM.frames.splice(i, 1); if(f && f.url) setTimeout(() => URL.revokeObjectURL(f.url), 2000);
+  const lastF = SM.frames[SM.frames.length - 1];
+  SM.last = lastF ? (lastF.c || lastF.img) : null;
+  SM.sel = clamp(SM.sel, 0, Math.max(0, SM.frames.length - 1));
+  smSync(); refreshStatus(); if(!$('#sm-ed').hidden) smStrip();
+}
+const smSrc = f => f.img || f.c;
+// orden en que se reproducen los cuadros (con "ida y vuelta" se devuelve sin repetir las puntas)
+function smOrder(){
+  const n = SM.frames.length, o = [...Array(n).keys()];
+  if(SM.boom && n > 2) for(let i = n - 2; i >= 1; i--) o.push(i);
+  return o;
+}
+function smDraw(ctx, cw, ch, f){
+  const src = f && smSrc(f); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cw, ch);
+  if(src) ctx.drawImage(src, 0, 0, cw, ch);
+}
+function smOpen(){
+  if(!SM.frames.length){ toast('Primero saca algunas fotos'); return; }
+  const f0 = SM.frames[0]; smPrev.width = f0.w; smPrev.height = f0.h;
+  $('#sm-ed').hidden = false; SM.playing = SM.frames.length > 1; SM.t0 = performance.now();
+  $('#sm-fps').value = SM.fps; $('#sm-boom').checked = SM.boom; smSpeedLabel();
+  smStrip(); smPlayBtn(); cancelAnimationFrame(SM.raf); SM.raf = requestAnimationFrame(smTick);
+}
+function smClose(){ $('#sm-ed').hidden = true; cancelAnimationFrame(SM.raf); SM.autoT = performance.now(); refreshStatus(); }
+let smNow = -1;
+function smTick(t){
+  if($('#sm-ed').hidden) return;
+  SM.raf = requestAnimationFrame(smTick);
+  let k;
+  if(SM.playing){ const o = smOrder(); k = o[Math.floor((t - SM.t0)/(1000/SM.fps)) % o.length]; }
+  else k = SM.sel;
+  smDraw(smPx, smPrev.width, smPrev.height, SM.frames[k]);
+  if(k !== smNow){ smNow = k; const bs = $('#sm-strip').children; for(let i = 0; i < bs.length; i++) bs[i].classList.toggle('now', SM.playing && i === k); }
+}
+function smStrip(){
+  const st = $('#sm-strip'); st.innerHTML = ''; smNow = -1;
+  SM.frames.forEach((f, i) => {
+    const b = document.createElement('button'); b.setAttribute('role', 'option'); b.setAttribute('aria-selected', i === SM.sel);
+    if(i === SM.sel) b.className = 'sel';
+    const im = document.createElement('img'); im.alt = 'Cuadro ' + (i + 1);
+    if(f.url) im.src = f.url; else if(f.c) im.src = f.c.toDataURL('image/jpeg', 0.5);
+    b.appendChild(im); const n = document.createElement('span'); n.textContent = i + 1; b.appendChild(n);
+    b.addEventListener('click', () => { SM.sel = i; SM.playing = false; smPlayBtn(); smStrip(); });
+    st.appendChild(b);
+  });
+  const sb = st.children[SM.sel]; if(sb) sb.scrollIntoView({inline:'nearest', block:'nearest'});
+  const n = SM.frames.length, secs = smOrder().length/SM.fps;
+  $('#sm-info').textContent = n + (n === 1 ? ' cuadro' : ' cuadros') + ' · ' + secs.toFixed(1).replace('.', ',') + ' seg.';
+  $('#sm-left').disabled = SM.sel <= 0; $('#sm-right').disabled = SM.sel >= n - 1;
+  $('#sm-del').disabled = $('#sm-dup').disabled = $('#sm-clear').disabled = $('#sm-save').disabled = !n;
+}
+function smPlayBtn(){ $('#sm-play').textContent = SM.playing ? '⏸ Pausar' : '▶ Reproducir'; }
+function smSpeedLabel(){ $('#sm-fps-o').textContent = SM.fps + ' por seg.'; }
+function smMove(d){
+  const i = SM.sel, j = i + d; if(j < 0 || j >= SM.frames.length) return;
+  [SM.frames[i], SM.frames[j]] = [SM.frames[j], SM.frames[i]]; SM.sel = j; smStrip();
+}
+async function smSave(){
+  if(SM.saving || !SM.frames.length) return;
+  const mime = pickMime();
+  const f0 = SM.frames[0], rc = mk(f0.w, f0.h), rx = rc.getContext('2d');
+  if(mime === null || !rc.captureStream){ toast('Este navegador no puede guardar video'); return; }
+  SM.saving = true; const btn = $('#sm-save'); btn.disabled = true;
+  const order = smOrder(), per = 1000/SM.fps, once = order.length*per;
+  // si es muy cortito, se repite hasta durar al menos 3 segundos
+  const loops = Math.max(1, Math.min(20, Math.ceil(3000/once))), total = once*loops;
+  smDraw(rx, rc.width, rc.height, SM.frames[order[0]]);
+  const stream = rc.captureStream(30);
+  let rec;
+  try{ rec = new MediaRecorder(stream, mime ? {mimeType:mime, videoBitsPerSecond:6e6} : {videoBitsPerSecond:6e6}); }
+  catch(e){ try{ rec = new MediaRecorder(stream); }catch(e2){ toast('No pude guardar el video'); SM.saving = false; smStrip(); return; } }
+  const chunks = []; rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+  const done = new Promise(r => rec.onstop = r);
+  rec.start(250);
+  const t0 = performance.now();
+  await new Promise(res => {
+    const step = () => {
+      const el = performance.now() - t0;
+      if(el >= total){ res(); return; }
+      smDraw(rx, rc.width, rc.height, SM.frames[order[Math.floor(el/per) % order.length]]);
+      btn.textContent = 'Guardando… ' + Math.min(99, Math.floor(el/total*100)) + '%';
+      setTimeout(step, 1000/30);
+    };
+    step();
+  });
+  rec.stop(); await done; stream.getTracks().forEach(t => t.stop());
+  btn.textContent = '💾 Guardar video'; SM.saving = false;
+  const type = rec.mimeType || mime || 'video/webm', blob = new Blob(chunks, {type});
+  if(!blob.size){ toast('No se pudo guardar el video'); smStrip(); return; }
+  const ext = /mp4/.test(type) ? 'mp4' : 'webm';
+  let poster = ''; try{ smDraw(rx, rc.width, rc.height, SM.frames[0]); poster = rc.toDataURL('image/jpeg', 0.7); }catch(e){}
+  shots.unshift({blob, url:URL.createObjectURL(blob), name:`${fileStamp()}.${ext}`, video:true, thumb:poster});
+  const th = $('#thumb'); th.disabled = false; th.style.backgroundImage = `url(${poster})`; th.innerHTML = `<span class="n">${shots.length}</span>`;
+  smClose(); openGallery(0);
+  toast('¡Listo! Toca Descargar o Compartir para guardarlo');
+}
+$('#btn-sm').addEventListener('click', smOpen);
+$('#sm-close').addEventListener('click', smClose);
+$('#sm-play').addEventListener('click', () => { SM.playing = !SM.playing; SM.t0 = performance.now(); smPlayBtn(); smStrip(); });
+$('#sm-fps').addEventListener('input', e => { SM.fps = +e.target.value; SM.t0 = performance.now(); smSpeedLabel(); smStrip(); });
+$('#sm-boom').addEventListener('change', e => { SM.boom = e.target.checked; smStrip(); });
+$('#sm-left').addEventListener('click', () => smMove(-1));
+$('#sm-right').addEventListener('click', () => smMove(1));
+$('#sm-dup').addEventListener('click', () => {
+  const f = SM.frames[SM.sel]; if(!f) return;
+  SM.frames.splice(SM.sel + 1, 0, {img:f.img, url:f.url, w:f.w, h:f.h, c:f.img ? null : f.c, dup:true}); SM.sel++; smSync(); smStrip();
+});
+$('#sm-del').addEventListener('click', () => {
+  // un cuadro repetido comparte la imagen con el original: solo se libera cuando ya nadie la usa
+  const f = SM.frames[SM.sel]; if(!f) return; const shared = SM.frames.some(g => g !== f && g.url && g.url === f.url);
+  if(shared){ SM.frames.splice(SM.sel, 1); SM.sel = clamp(SM.sel, 0, Math.max(0, SM.frames.length - 1)); const l = SM.frames[SM.frames.length - 1]; SM.last = l ? (l.c || l.img) : null; smSync(); refreshStatus(); }
+  else smRemove(SM.sel);
+  if(!SM.frames.length) smClose(); else smStrip();
+});
+$('#sm-clear').addEventListener('click', () => {
+  if(!confirmClear()) return;
+  const urls = new Set(SM.frames.map(f => f.url).filter(Boolean)); urls.forEach(u => URL.revokeObjectURL(u));
+  SM.frames = []; SM.last = null; SM.sel = 0; smSync(); smClose(); toast('Stop motion borrado');
+});
+// "Borrar todo" pide un segundo toque (sin ventanas del navegador)
+let smClearT = 0;
+function confirmClear(){
+  const b = $('#sm-clear'), now = performance.now();
+  if(now - smClearT < 3000){ smClearT = 0; b.textContent = 'Borrar todo'; return true; }
+  smClearT = now; b.textContent = '¿Seguro? toca otra vez'; setTimeout(() => { if(performance.now() - smClearT >= 2900) b.textContent = 'Borrar todo'; }, 3000);
+  return false;
+}
+$('#sm-save').addEventListener('click', smSave);
+document.addEventListener('keydown', e => {
+  if($('#sm-ed').hidden || (e.target.closest && e.target.closest('input'))) return;
+  if(e.key === 'ArrowLeft'){ SM.playing = false; SM.sel = Math.max(0, SM.sel - 1); smPlayBtn(); smStrip(); }
+  if(e.key === 'ArrowRight'){ SM.playing = false; SM.sel = Math.min(SM.frames.length - 1, SM.sel + 1); smPlayBtn(); smStrip(); }
+  if(e.key === 'Escape') smClose();
+});
+
+{
+  const g = $('#of-gamas');
+  OF_GAMAS.forEach(([name, cols], i) => {
+    const b = document.createElement('button'); b.className = 'of-gama';
+    b.innerHTML = `<i>${cols.slice(0, 3).map(c => `<b style="background:${c}"></b>`).join('')}</i>${name}`;
+    b.addEventListener('click', () => { OF.ink = cols.slice(); OF.gama = i; ofApply(); });
+    g.appendChild(b);
+  });
+  $('#of-bar').querySelectorAll('.of-ink input').forEach(inp => inp.addEventListener('input', () => { OF.ink[+inp.dataset.i] = inp.value; OF.gama = -1; ofApply(); }));
+  $('#of-swap').addEventListener('click', ofSwap);
+  try{ const sv = JSON.parse(localStorage.getItem('flami-desfase-colores') || 'null'); if(sv && Array.isArray(sv.ink) && sv.ink.length === 5 && sv.ink.every(c => /^#[0-9a-f]{6}$/i.test(c))){ OF.ink = sv.ink; OF.gama = typeof sv.gama === 'number' ? sv.gama : -1; } }catch(e){}
+  ofApply();
+}
+
+/* ---------- Collage armado a mano (estilo "joiner" de Hockney) ----------
+   La cámara se ve en un recuadro sobre un lienzo blanco. Cada foto queda pegada donde estaba el recuadro.
+   Si "Se mueve con el celular" está prendido, el recuadro sigue el movimiento del celular (se mide cuánto se corre la imagen). */
+const HK = {pieces:[], x:0, y:0, ref:null, cur:null, sw:96, sh:72, part:[0, 0], lastHead:-1, mode:'cam', sel:-1, init:false};
+function hkSetAuto(){ PARAMS.hockney = P.hockney.auto ? PARAMS.hockneyAuto : PARAMS.hockneyHand; buildParams(); hkSync(); refreshStatus(); }
+function hkSync(){
+  const on = filter === 'hockney' && !P.hockney.auto, bar = $('#hk-bar'); bar.hidden = !on;
+  if(on) view.style.touchAction = 'none';
+  const m = $('#hk-mode'); m.setAttribute('aria-pressed', HK.mode === 'pieces'); m.textContent = HK.mode === 'pieces' ? 'Dedo: mover fotos' : 'Dedo: mover cámara';
+  $('#hk-undo').disabled = $('#hk-clear').disabled = $('#hk-save').disabled = !HK.pieces.length;
+}
+function hkWin(){ const w = W*(0.14 + P.hockney.size*0.055); return [w, w*H/W]; }
+function hkGray(){
+  const sw = HK.sw, sh = HK.sh = Math.max(24, Math.round(sw*H/W));
+  if(!HK.gc || HK.gc.height !== sh){ HK.gc = mk(sw, sh); }
+  const x = HK.gc.getContext('2d', {willReadFrequently:true}); x.drawImage(ago(0), 0, 0, sw, sh);
+  const d = x.getImageData(0, 0, sw, sh).data, g = new Float32Array(sw*sh);
+  for(let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = d[j]*.3 + d[j+1]*.59 + d[j+2]*.11;
+  return g;
+}
+// cuánto se corrió la imagen actual respecto de la de referencia (en pixeles chicos)
+function hkShift(a, b){
+  const sw = HK.sw, sh = HK.sh, R = 9; let best = Infinity, bx = 0, by = 0, zero = 0;
+  for(let dy = -R; dy <= R; dy++) for(let dx = -R; dx <= R; dx++){
+    let sum = 0, n = 0;
+    for(let y = R; y < sh - R; y += 2){ const ra = y*sw, rb = (y + dy)*sw + dx; for(let x = R; x < sw - R; x += 2){ sum += Math.abs(a[ra + x] - b[rb + x]); n++; } }
+    sum /= n; if(dx === 0 && dy === 0) zero = sum;
+    if(sum < best){ best = sum; bx = dx; by = dy; }
+  }
+  return zero - best < 0.6 ? [0, 0] : [bx, by];   // si casi no mejora, se considera quieto
+}
+function hkTrack(){
+  if(!P.hockney.follow || HK.drag || srcKind === 'image') { HK.part = [0, 0]; return; }
+  if(head === HK.lastHead) return; HK.lastHead = head;
+  const g = hkGray();
+  if(!HK.ref || HK.ref.length !== g.length){ HK.ref = g; HK.part = [0, 0]; return; }
+  const [dx, dy] = hkShift(HK.ref, g), [ww] = hkWin(), k = ww/HK.sw;
+  // la escena se corre al revés de hacia donde mueves el celular
+  if(Math.abs(dx) >= 4 || Math.abs(dy) >= 4){ HK.x -= dx*k; HK.y -= dy*k; HK.ref = g; HK.part = [0, 0]; hkClampWin(); }
+  else HK.part = [-dx*k, -dy*k];
+}
+function hkClampWin(){ HK.x = clamp(HK.x, 0, W); HK.y = clamp(HK.y, 0, H); }
+function hkDrawPieces(ctx){
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  HK.pieces.forEach((p, i) => {
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(p.s, p.s);
+    ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
+    if(P.hockney.border){ const b = Math.max(3, p.w*0.03); ctx.fillStyle = '#fff'; ctx.fillRect(-p.w/2 - b, -p.h/2 - b, p.w + b*2, p.h + b*2); ctx.shadowColor = 'transparent'; }
+    ctx.drawImage(p.c, -p.w/2, -p.h/2, p.w, p.h);
+    ctx.restore();
+  });
+}
+function hkHand(t){
+  if(!HK.init || HK.W !== W){ HK.init = true; HK.W = W; HK.x = W/2; HK.y = H/2; HK.ref = null; }
+  hkTrack();
+  hkDrawPieces(vctx);
+  if(HK.mode === 'pieces'){
+    const p = HK.pieces[HK.sel];
+    if(p){ vctx.save(); vctx.translate(p.x, p.y); vctx.rotate(p.r); vctx.scale(p.s, p.s); vctx.setLineDash([8, 6]); vctx.strokeStyle = '#ff3fa4'; vctx.lineWidth = 3/p.s; vctx.strokeRect(-p.w/2, -p.h/2, p.w, p.h); vctx.restore(); }
+    return;
+  }
+  const [ww, wh] = hkWin(), cx = HK.x + HK.part[0], cy = HK.y + HK.part[1];
+  vctx.save(); vctx.shadowColor = 'rgba(0,0,0,.35)'; vctx.shadowBlur = 14;
+  vctx.drawImage(ago(0), cx - ww/2, cy - wh/2, ww, wh); vctx.restore();
+  vctx.save(); vctx.setLineDash([10, 7]); vctx.lineWidth = 3; vctx.strokeStyle = '#ff3fa4'; vctx.strokeRect(cx - ww/2, cy - wh/2, ww, wh); vctx.restore();
+}
+function hkAdd(){
+  if(!W || !count) return;
+  if(HK.mode === 'pieces'){ HK.mode = 'cam'; HK.sel = -1; hkSync(); refreshStatus(); toast('Listo: ahora el dedo mueve la cámara otra vez'); return; }
+  const [ww, wh] = hkWin(), q = Math.min(2, W/ww), c = mk(Math.round(ww*q), Math.round(wh*q));
+  c.getContext('2d').drawImage(ago(0), 0, 0, c.width, c.height);
+  const tilt = P.hockney.tilt*0.012;
+  HK.pieces.push({c, w:ww, h:wh, x:HK.x + HK.part[0], y:HK.y + HK.part[1], r:(Math.random()*2 - 1)*tilt, s:1});
+  if(HK.pieces.length > 120) HK.pieces.shift();
+  HK.x += HK.part[0]; HK.y += HK.part[1]; HK.part = [0, 0]; HK.ref = null;
+  const fl = $('#flash'); fl.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => fl.classList.remove('on')));
+  hkSync(); refreshStatus();
+}
+function hkHit(x, y){
+  for(let i = HK.pieces.length - 1; i >= 0; i--){
+    const p = HK.pieces[i], dx = x - p.x, dy = y - p.y, c = Math.cos(-p.r), s = Math.sin(-p.r);
+    const lx = (dx*c - dy*s)/p.s, ly = (dx*s + dy*c)/p.s;
+    if(Math.abs(lx) <= p.w/2 && Math.abs(ly) <= p.h/2) return i;
+  }
+  return -1;
+}
+{
+  const pts = new Map(); let last = null;
+  const on = () => filter === 'hockney' && !P.hockney.auto;
+  const two = () => { const [a, b] = [...pts.values()]; return {d:Math.hypot(b[0] - a[0], b[1] - a[1]), a:Math.atan2(b[1] - a[1], b[0] - a[0]), m:[(a[0] + b[0])/2, (a[1] + b[1])/2]}; };
+  view.addEventListener('pointerdown', e => {
+    if(!on()) return; const p = o3ToCanvas(e); pts.set(e.pointerId, p); try{ view.setPointerCapture(e.pointerId); }catch(err){}
+    if(HK.mode === 'pieces' && pts.size === 1){
+      const i = hkHit(p[0], p[1]);
+      if(i >= 0){ const [pc] = HK.pieces.splice(i, 1); HK.pieces.push(pc); HK.sel = HK.pieces.length - 1; } else HK.sel = -1;
+    }
+    HK.drag = true; last = pts.size >= 2 ? two() : null;
+  });
+  view.addEventListener('pointermove', e => {
+    if(!on() || !pts.has(e.pointerId)) return;
+    const prev = pts.get(e.pointerId), p = o3ToCanvas(e); pts.set(e.pointerId, p);
+    const dx = p[0] - prev[0], dy = p[1] - prev[1];
+    if(HK.mode === 'cam'){ if(pts.size === 1){ HK.x += dx; HK.y += dy; hkClampWin(); } return; }
+    const pc = HK.pieces[HK.sel]; if(!pc) return;
+    if(pts.size >= 2){
+      const g = two(); if(last){ pc.s = clamp(pc.s*g.d/Math.max(1, last.d), .2, 4); let da = g.a - last.a; if(da > Math.PI) da -= 2*Math.PI; if(da < -Math.PI) da += 2*Math.PI; pc.r += da; pc.x += g.m[0] - last.m[0]; pc.y += g.m[1] - last.m[1]; }
+      last = g;
+    }else{ pc.x += dx; pc.y += dy; }
+  });
+  const up = e => { pts.delete(e.pointerId); last = pts.size >= 2 ? two() : null; if(!pts.size){ HK.drag = false; HK.ref = null; } };
+  for(const ev of ['pointerup', 'pointercancel']) view.addEventListener(ev, up);
+  view.addEventListener('wheel', e => {
+    if(!on() || HK.mode !== 'pieces') return; const pc = HK.pieces[HK.sel]; if(!pc) return; e.preventDefault();
+    if(e.shiftKey) pc.r += e.deltaY*0.003; else pc.s = clamp(pc.s*Math.exp(-e.deltaY*.0015), .2, 4);
+  }, {passive:false});
+  for(const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => { if(on()) e.preventDefault(); });
+}
+$('#hk-mode').addEventListener('click', () => {
+  HK.mode = HK.mode === 'pieces' ? 'cam' : 'pieces';
+  HK.sel = HK.mode === 'pieces' ? HK.pieces.length - 1 : -1; HK.ref = null; hkSync(); refreshStatus();
+  toast(HK.mode === 'pieces' ? 'Ahora el dedo mueve las fotos pegadas' : 'Ahora el dedo mueve el recuadro de la cámara');
+});
+$('#hk-undo').addEventListener('click', () => {
+  if(!HK.pieces.length) return;
+  const i = HK.mode === 'pieces' && HK.sel >= 0 ? HK.sel : HK.pieces.length - 1;
+  HK.pieces.splice(i, 1); HK.sel = Math.min(HK.sel, HK.pieces.length - 1); hkSync(); refreshStatus();
+});
+let hkClearT = 0;
+$('#hk-clear').addEventListener('click', () => {
+  const b = $('#hk-clear'), now = performance.now();
+  if(now - hkClearT > 3000){ hkClearT = now; b.textContent = '¿Seguro? toca otra vez'; setTimeout(() => { b.textContent = 'Empezar de nuevo'; }, 3000); return; }
+  hkClearT = 0; b.textContent = 'Empezar de nuevo';
+  HK.pieces = []; HK.sel = -1; HK.mode = 'cam'; HK.x = W/2; HK.y = H/2; HK.ref = null; hkSync(); refreshStatus();
+});
+$('#hk-save').addEventListener('click', () => {
+  if(!HK.pieces.length) return;
+  // se recorta al borde de las fotos (con un margen blanco) y se guarda en la galería
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for(const p of HK.pieces){ const rr = Math.hypot(p.w, p.h)/2*p.s; x0 = Math.min(x0, p.x - rr); y0 = Math.min(y0, p.y - rr); x1 = Math.max(x1, p.x + rr); y1 = Math.max(y1, p.y + rr); }
+  const big = mk(W, H); hkDrawPieces(big.getContext('2d'));
+  const m = W*0.04; x0 = clamp(x0 - m, 0, W); y0 = clamp(y0 - m, 0, H); x1 = clamp(x1 + m, 0, W); y1 = clamp(y1 + m, 0, H);
+  const sc = 2, out = mk(Math.round((x1 - x0)*sc), Math.round((y1 - y0)*sc)), ox = out.getContext('2d');
+  // se dibuja de nuevo al doble de tamaño para que quede más nítido
+  ox.scale(sc, sc); ox.translate(-x0, -y0); hkDrawPieces(ox);
+  out.toBlob(b => {
+    if(!b){ toast('No pude guardar el collage'); return; }
+    shots.unshift({blob:b, url:URL.createObjectURL(b), name:fileStamp() + '.jpg'});
+    const th = $('#thumb'); th.disabled = false; th.style.backgroundImage = `url(${shots[0].url})`; th.innerHTML = `<span class="n">${shots.length}</span>`;
+    openGallery(0); toast('Collage guardado: toca Descargar o Compartir');
+  }, 'image/jpeg', 0.92);
 });
 
 /* ---------- arranque ---------- */
