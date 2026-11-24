@@ -267,15 +267,19 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 #app:has(#params:not([hidden])) .rail-h{bottom:auto;top:64px}
 
 /* ---------- Aviso: aquí se ajusta el filtro ---------- */
-#tune-tip{position:fixed;z-index:15;background:#ff3fa4;color:#fff;font:700 .82rem/1.25 var(--body);padding:8px 12px;border-radius:12px;max-width:190px;
+#tune-tip{position:fixed;z-index:15;background:#ff3fa4;color:#fff;font:700 .72rem/1.2 var(--body);padding:5px 9px;border-radius:10px;max-width:170px;
   box-shadow:0 6px 20px rgba(0,0,0,.45);pointer-events:none;opacity:0;transform:scale(.92);transition:opacity .3s,transform .3s}
 #tune-tip.on{opacity:1;transform:none}
-#tune-tip::after{content:'';position:absolute;width:12px;height:12px;background:#ff3fa4;transform:rotate(45deg)}
-#tune-tip.left::after{right:-5px;top:calc(50% - 6px)}
+#tune-tip::after{content:'';position:absolute;width:9px;height:9px;background:#ff3fa4;transform:rotate(45deg)}
+#tune-tip.left::after{right:-4px;top:calc(50% - 4.5px)}
 #tune-tip.up::after{bottom:-5px;left:var(--ax,20px)}
 #tune-tip.left{line-height:1.2}
+/* botones de borrar: rojos, fáciles de encontrar */
+.pill.del{background:#e5344a!important;border-color:#ff5a6c!important;color:#fff!important;font-weight:700}
+.pill.del:disabled{opacity:.4}
+#o3-del{order:-1}
 #hint-pop{position:absolute;z-index:6;left:50%;top:40%;transform:translate(-50%,-50%) scale(.92);background:#ff3fa4;color:#fff;font:700 .95rem/1.25 var(--body);
-  padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.45);pointer-events:none;opacity:0;transition:opacity .3s,transform .3s;white-space:nowrap}
+  padding:9px 16px;border-radius:18px;box-shadow:0 6px 20px rgba(0,0,0,.45);pointer-events:none;opacity:0;transition:opacity .3s,transform .3s;text-align:center;width:max-content;max-width:82%}
 #hint-pop.on{opacity:1;transform:translate(-50%,-50%)}
 #tune.hint{animation:tunepulse 1s ease-in-out 3}
 @keyframes tunepulse{50%{box-shadow:0 0 0 6px rgba(255,63,164,.55);border-color:#ff3fa4}}
@@ -424,6 +428,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <div class="tools">
         <button class="pill pal-btn" id="btn-lpclear" hidden title="Borrar dibujo"><i style="background:radial-gradient(circle,#fff 0 30%,#ff7eb6 60%)"></i>Borrar dibujo</button>
         <button class="pill pal-btn" id="btn-dm" hidden title="Mantén apretado para mezclar los cuadros (un toque lo deja pegado)">MEZCLAR</button>
+        <button class="pill pal-btn del" id="btn-smundo" hidden title="Borrar la última foto">↶ Borrar última</button>
         <button class="pill pal-btn" id="btn-sm" hidden title="Ver y editar tu stop motion">🎞️ Editar (0)</button>
         <button class="pill pal-btn" id="btn-pal" hidden title="Cambiar colores"><i></i>Cambiar colores</button>
         <button class="iconbtn" id="btn-source" title="Abrir foto o video" aria-label="Abrir una foto o video del computador">
@@ -444,7 +449,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     </div>
     <div id="o3-bar" hidden>
       <div class="o3-row"><input id="o3-text" type="text" enterkeyhint="go" autocomplete="off" autocapitalize="none" maxlength="40" placeholder="Escribe un objeto: perro, pizza, cubo de espejo…" aria-label="Objeto a crear"><button class="pill" id="o3-make">Crear</button></div>
-      <div class="o3-row"><button class="pill" id="o3-dice" title="Objeto al azar">🎲 Sorpréndeme</button><button class="pill" id="o3-mode" aria-pressed="false">Dedo: mover</button><button class="pill" id="o3-snap" title="Congelar la cámara, tocar a la persona u objeto y volverlo 3D">📸 Recortar de la cámara</button><button class="pill" id="o3-photo" title="Elegir una foto, quitarle el fondo y ponerla en 3D">🖼️ Pegar foto</button><button class="pill" id="o3-glb" title="Abrir un modelo 3D .glb (por ejemplo de Luma)">📦 Abrir modelo 3D</button><button class="pill" id="o3-del">Borrar</button></div>
+      <div class="o3-row"><button class="pill" id="o3-dice" title="Objeto al azar">🎲 Sorpréndeme</button><button class="pill" id="o3-mode" aria-pressed="false">Dedo: mover</button><button class="pill" id="o3-snap" title="Congelar la cámara, tocar a la persona u objeto y volverlo 3D">📸 Recortar de la cámara</button><button class="pill" id="o3-photo" title="Elegir una foto, quitarle el fondo y ponerla en 3D">🖼️ Pegar foto</button><button class="pill" id="o3-glb" title="Abrir un modelo 3D .glb (por ejemplo de Luma)">📦 Abrir modelo 3D</button><button class="pill del" id="o3-del">🗑️ Borrar</button></div>
       <input type="file" id="o3-file" accept=".glb,model/gltf-binary" hidden>
       <input type="file" id="o3-img" accept="image/*" hidden>
     </div>
@@ -455,8 +460,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <button class="pill" id="hk-save">💾 Guardar collage</button>
       </div>
       <div class="hk-tools">
-      <button class="pill" id="hk-undo">↶ Borrar foto</button>
-      <button class="pill" id="hk-clear">Empezar de nuevo</button>
+      <button class="pill del" id="hk-undo">↶ Borrar foto</button>
+      <button class="pill del" id="hk-clear">🗑️ Empezar de nuevo</button>
       </div>
       <div id="hk-bgs" role="toolbar" aria-label="Fondo"><span>Fondo</span></div>
     </div>
@@ -535,8 +540,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     <button class="pill" id="sm-left" title="Mover el cuadro elegido hacia atrás">◀ Mover</button>
     <button class="pill" id="sm-right" title="Mover el cuadro elegido hacia adelante">Mover ▶</button>
     <button class="pill" id="sm-dup" title="Repetir el cuadro elegido (se queda más tiempo)">Repetir cuadro</button>
-    <button class="pill" id="sm-del">Borrar cuadro</button>
-    <button class="pill" id="sm-clear">Borrar todo</button>
+    <button class="pill del" id="sm-del">🗑️ Borrar cuadro</button>
+    <button class="pill del" id="sm-clear">🗑️ Borrar todo</button>
     <button class="pill primary" id="sm-save">💾 Guardar video</button>
   </div>
 </div>
@@ -600,7 +605,7 @@ const PARAMS = {
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
   hockney: null,
   hockneyAuto: [{k:'auto',label:'Collage automático (el de antes)',toggle:true,v:0},{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
-  hockneyHand: [{k:'auto',label:'Collage automático (el de antes)',toggle:true,v:0},{k:'dark',label:'Fondo negro (cuánto tapa la cámara)',min:0,max:10,v:7},{k:'png',label:'Guardar con fondo transparente (PNG)',toggle:true,v:1},{k:'tilt',label:'Chueco',min:0,max:10,v:3},{k:'follow',label:'Se mueve con el celular',toggle:true,v:0},{k:'border',label:'Borde blanco',toggle:true,v:0}],
+  hockneyHand: [{k:'auto',label:'Collage automático (el de antes)',toggle:true,v:0},{k:'dark',label:'Fondo negro (cuánto tapa la cámara)',min:0,max:10,v:7},{k:'png',label:'Guardar con fondo transparente (PNG)',toggle:true,v:1},{k:'tilt',label:'Chueco',min:0,max:10,v:3},{k:'follow',label:'Se mueve con el celular',toggle:true,v:1},{k:'border',label:'Borde blanco',toggle:true,v:0}],
   dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:8},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:5},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:7},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:1}],
   obj3d:   [{k:'spin',label:'Girar solo',toggle:true,v:1},{k:'shadow',label:'Sombra',toggle:true,v:1},{k:'light',label:'Luz de la cámara',toggle:true,v:1},{k:'clear',label:'Borrar todos',button:true,act:() => o3Delete(true)}],
   stop:    [{k:'ghost',label:'Fantasma del cuadro anterior',min:0,max:10,v:4},{k:'auto',label:'Foto sola cada (seg., 0 = no)',min:0,max:10,v:0},{k:'undo',label:'Borrar el último cuadro',button:true,act:() => smUndo()},{k:'edit',label:'🎞️ Ver y guardar',button:true,act:() => smOpen()}],
@@ -802,7 +807,7 @@ function ensureSegmenter(){
     .catch(e => { console.warn(e); segState = 'failed'; refreshStatus(); });
 }
 function refreshStatus(){
-  if(filter === 'hockney' && !P.hockney.auto) return status(HK.pieces.length ? 'Arrastra las fotos para moverlas · esquina o rueda: tamaño · 2 dedos: girar' : 'Mueve el recuadro con el dedo · saca una foto: queda pegada ahí · esquina rosada: cambiar el recuadro · 2 dedos: zoom');
+  if(filter === 'hockney' && !P.hockney.auto) return status(HK.pieces.length ? 'Arrastra las fotos para moverlas · esquina o rueda: tamaño · 2 dedos: girar' : 'Mueve el celular (o el recuadro con el dedo) · saca una foto: queda pegada ahí · esquina rosada: cambiar el recuadro · 2 dedos: zoom');
   if(filter === 'stop') return status(SM.frames.length ? 'Mueve un poquito y saca el cuadro ' + (SM.frames.length + 1) : 'Saca una foto por cada cuadro. Entre foto y foto mueve un poquito tu objeto');
   if(filter === 'obj3d') return status(O3.objs.length ? (O3.mode === 'rot' ? '1 dedo: girar · 2 dedos: tamaño y giro' : '1 dedo: mover · 2 dedos: tamaño y giro') : 'Escribe un objeto arriba y toca Crear');
   if(filter === 'light') return status('Apunta el flash del celular a la cámara y dibuja');
@@ -2551,7 +2556,9 @@ function setFilter(id, announce = true){
   if(id === 'dm') for(const q of PARAMS.dm) if(!q.button) P.dm[q.k] = q.v;   // al entrar, siempre parte con la configuración principal
   o3SyncBar(); smSync(); ofSyncBar(); hkSync(); SM.autoT = performance.now(); buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
   if(announce) setTimeout(showTuneTip, 450);
-  if(announce && id === 'hockney' && !P.hockney.auto) setTimeout(() => showPop('☝️ Mueve el recuadro con el dedo'), 450);
+  if(id === 'hockney') try{ gyStart(); }catch(e){}
+  clearTimeout(popT); $('#hint-pop').classList.remove('on');
+  if(announce && id === 'hockney' && !P.hockney.auto) setTimeout(() => showPop(P.hockney.follow ? '📱 El recuadro sigue al celular (o muévelo con el dedo)' : '☝️ Mueve el recuadro con el dedo'), 450);
   if(announce){ const el = $('#flt-name'); el.textContent = FILTERS.find(f => f.id === id).name; el.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => el.classList.remove('on'), 700); }
   try{ localStorage.setItem('camara-rara-filtro', id); }catch(e){}
 }
@@ -2595,17 +2602,17 @@ function showTuneTip(){
   const r = t.getBoundingClientRect();
   // siempre a la izquierda del botón (en el celular, texto corto para que quepa sin tapar los filtros)
   const narrow = r.left < 230;
-  tip.textContent = narrow ? 'Ajusta el filtro aquí' : 'Toca aquí para ajustar el filtro';
-  tip.style.maxWidth = narrow ? Math.max(70, r.left - 22) + 'px' : '';
+  tip.textContent = narrow ? 'Ajusta aquí' : 'Toca aquí para ajustar el filtro';
+  tip.style.maxWidth = narrow ? Math.max(60, r.left - 18) + 'px' : '';
   tip.classList.remove('up'); tip.classList.add('left'); tip.style.left = tip.style.top = '';
   tip.style.visibility = 'hidden'; tip.classList.add('on'); const tw = tip.offsetWidth, th = tip.offsetHeight;
-  tip.style.left = Math.max(4, r.left - tw - 12) + 'px'; tip.style.top = (r.top + r.height/2 - th/2) + 'px';
+  tip.style.left = Math.max(4, r.left - tw - 9) + 'px'; tip.style.top = (r.top + r.height/2 - th/2) + 'px';
   tip.classList.remove('on'); void tip.offsetWidth; tip.style.visibility = '';
   tip.classList.add('on'); t.classList.add('hint');
   tipT = setTimeout(hideTuneTip, 3200);
 }
 /* aviso corto en el medio de la cámara (p. ej. Collage: el recuadro se mueve con el dedo) */
-let popT = 0;
+var popT = 0;
 function showPop(msg){ const el = $('#hint-pop'); el.textContent = msg; el.classList.add('on'); clearTimeout(popT); popT = setTimeout(() => el.classList.remove('on'), 3500); }
 $('#tune').addEventListener('click', () => {
   hideTuneTip();
@@ -2806,6 +2813,7 @@ const smPrev = $('#sm-prev'), smPx = smPrev.getContext('2d');
 function smSync(){
   const b = $('#btn-sm'); b.hidden = filter !== 'stop';
   b.textContent = '🎞️ Editar (' + SM.frames.length + ')'; b.disabled = !SM.frames.length;
+  const u = $('#btn-smundo'); u.hidden = filter !== 'stop' || !SM.frames.length;
 }
 function smLive(t){
   vctx.drawImage(ago(0), 0, 0);
@@ -2941,6 +2949,7 @@ async function smSave(){
   toast('¡Listo! Toca Descargar o Compartir para guardarlo');
 }
 $('#btn-sm').addEventListener('click', smOpen);
+$('#btn-smundo').addEventListener('click', () => { smUndo(); smSync(); });
 $('#sm-close').addEventListener('click', smClose);
 $('#sm-play').addEventListener('click', () => { SM.playing = !SM.playing; SM.t0 = performance.now(); smPlayBtn(); smStrip(); });
 $('#sm-fps').addEventListener('input', e => { SM.fps = +e.target.value; SM.t0 = performance.now(); smSpeedLabel(); smStrip(); });
@@ -3030,12 +3039,64 @@ function hkShift(a, b){
   }
   return zero - best < 0.6 ? [0, 0] : [bx, by];   // si casi no mejora, se considera quieto
 }
+/* Seguir al celular. Primero por imagen (diferencia entre cuadros). En el celular además se usa el giroscopio,
+   que sigue los paneos rápidos sin perderse: el programa aprende solo qué eje y cuánto, comparando el giro
+   con lo que se ve moverse en la imagen mientras mueves el celular (se guarda para la próxima vez). */
+const GY = {on:false, asked:false, acc:[0, 0, 0], last:[0, 0, 0], t:0, n:0, sxy:null, sxx:null, syy:null, map:null, fac:''};
+function gyReset(){ GY.sxy = [[0, 0], [0, 0], [0, 0]]; GY.sxx = [0, 0, 0]; GY.syy = [0, 0]; GY.n = 0; GY.map = null;
+  try{ const m = JSON.parse(localStorage.getItem('flami-collage-giro-' + facing) || 'null'); if(m && m.length === 2) GY.map = m; }catch(e){} GY.fac = facing; }
+function gyOnMotion(e){
+  const r = e.rotationRate; if(!r) return;
+  const now = performance.now(), dt = GY.t ? Math.min(0.1, (now - GY.t)/1000) : 0; GY.t = now;
+  const v = [r.alpha || 0, r.beta || 0, r.gamma || 0];
+  for(let c = 0; c < 3; c++) if(Math.abs(v[c]) > 0.6) GY.acc[c] += v[c]*dt;   // zona muerta: quieto no se corre
+}
+function gyStart(){
+  if(GY.on || GY.asked || typeof DeviceMotionEvent === 'undefined' || !(matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window)) return;
+  const go = () => { GY.on = true; addEventListener('devicemotion', gyOnMotion); };
+  if(typeof DeviceMotionEvent.requestPermission === 'function'){
+    GY.asked = true;   // iPhone: pide permiso (tiene que ser al tocar algo)
+    DeviceMotionEvent.requestPermission().then(st => { if(st === 'granted') go(); }).catch(() => { GY.asked = false; });
+  } else go();
+}
+// iPhone: el permiso del movimiento se pide al tocar (no se puede pedir solo)
+['click', 'touchend'].forEach(ev => document.addEventListener(ev, () => { if(filter === 'hockney' && P.hockney.follow && !P.hockney.auto) try{ gyStart(); }catch(e){} }, true));
+function gyLearn(gd, d){
+  // junta cuánto se parece cada eje del giro a lo que se movió la imagen
+  for(let c = 0; c < 3; c++){ GY.sxx[c] += gd[c]*gd[c]; for(let a = 0; a < 2; a++) GY.sxy[c][a] += gd[c]*d[a]; }
+  GY.syy[0] += d[0]*d[0]; GY.syy[1] += d[1]*d[1]; GY.n++;
+  if(GY.n < 12) return;
+  const m = [];
+  for(let a = 0; a < 2; a++){
+    let best = -1, bc = -1;
+    for(let c = 0; c < 3; c++){ const den = Math.sqrt(GY.sxx[c]*GY.syy[a]); const cor = den > 0 ? Math.abs(GY.sxy[c][a])/den : 0; if(cor > best){ best = cor; bc = c; } }
+    if(best < 0.75 || GY.sxx[bc] < 4) return;
+    m.push([bc, GY.sxy[bc][a]/GY.sxx[bc]]);
+  }
+  if(m[0][0] === m[1][0]) return;
+  GY.map = m; try{ localStorage.setItem('flami-collage-giro-' + facing, JSON.stringify(m)); }catch(e){}
+}
 function hkTrack(){
-  if(!P.hockney.follow || HK.drag || srcKind === 'image') { HK.part = [0, 0]; return; }
+  if(!P.hockney.follow || HK.drag || srcKind === 'image') { HK.part = [0, 0]; HK.prev = null; GY.last = GY.acc.slice(); return; }
   if(head === HK.lastHead) return; HK.lastHead = head;
+  if(GY.fac !== facing || !GY.sxx) gyReset();
+  const tn = performance.now(); if(tn - (GY.tt || 0) > 300) GY.last = GY.acc.slice(); GY.tt = tn;   // volviste al Collage: no saltar
+  const gd = [GY.acc[0] - GY.last[0], GY.acc[1] - GY.last[1], GY.acc[2] - GY.last[2]]; GY.last = GY.acc.slice();
+  const k = hkK()*W/HK.sw;
+  if(GY.on && GY.map){
+    // giroscopio ya aprendido: sigue el paneo al tiro, aunque sea rápido
+    const dx = GY.map[0][1]*gd[GY.map[0][0]], dy = GY.map[1][1]*gd[GY.map[1][0]];
+    HK.x -= dx*k; HK.y -= dy*k; HK.part = [0, 0]; HK.ref = null; hkClampWin();
+    return;
+  }
   const g = hkGray();
+  if(GY.on && HK.prev && HK.prev.length === g.length && Math.max(Math.abs(gd[0]), Math.abs(gd[1]), Math.abs(gd[2])) > 0.15){
+    const d = hkShift(HK.prev, g);
+    if((d[0] || d[1]) && Math.abs(d[0]) < 9 && Math.abs(d[1]) < 9) gyLearn(gd, d);
+  }
+  HK.prev = g;
   if(!HK.ref || HK.ref.length !== g.length){ HK.ref = g; HK.part = [0, 0]; return; }
-  const [dx, dy] = hkShift(HK.ref, g), k = hkK()*W/HK.sw;
+  const [dx, dy] = hkShift(HK.ref, g);
   // la escena se corre al revés de hacia donde mueves el celular
   if(Math.abs(dx) >= 4 || Math.abs(dy) >= 4){ HK.x -= dx*k; HK.y -= dy*k; HK.ref = g; HK.part = [0, 0]; hkClampWin(); }
   else HK.part = [-dx*k, -dy*k];
@@ -3208,7 +3269,7 @@ setFilter(filter, false);
 useDemo();
 startCamera();
 requestAnimationFrame(loop);
-window.__camara = {setFilter, snap, useFile, get src(){return srcKind}, get W(){return W}, get seg(){return segState}};
+window.__camara = {setFilter, snap, useFile, hk:{GY, HK, gyLearn, gyReset, gyOnMotion, get P(){ return P; }, get W(){ return W; }}, get src(){return srcKind}, get W(){return W}, get seg(){return segState}};
 })();
 </script>
 <script>
