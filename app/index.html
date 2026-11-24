@@ -353,7 +353,6 @@ const FILTERS = [
   {id:'echo',    name:'Eco',              sw:'radial-gradient(circle at 30% 50%,#3a4fd8 0 22%,transparent 23%),radial-gradient(circle at 50% 50%,#3a4fd8aa 0 22%,transparent 23%),radial-gradient(circle at 70% 50%,#3a4fd855 0 22%,#e9e6df 23%)'},
   {id:'stretch', name:'Estirado',         sw:'radial-gradient(ellipse 22% 46% at 50% 45%,#ffb3d1 0 55%,#ff7eb6 56% 70%,#2a2333 71%)'},
   {id:'cas',     name:'Content aware',    sw:'linear-gradient(90deg,#2a2333 0 18%,#f3c9a8 18% 30%,#2a2333 30% 38%,#7fb3d2 38% 70%,#f3c9a8 70% 80%,#2a2333 80%)'},
-  {id:'light',   name:'Luz',              sw:'radial-gradient(circle at 30% 70%,#fff 0 6%,transparent 7%),conic-gradient(from 200deg at 50% 50%,#ff3fa4,#ffd23f,#3fffb2,#3fa4ff,#ff3fa4)', glyph:''},
   {id:'dm',      name:'Datamosh',         sw:'linear-gradient(180deg,#ff3fa4 0 20%,#3fd2ff 20% 34%,#2a2333 34% 48%,#ffd23f 48% 52%,#2a2333 52% 70%,#3fffb2 70% 78%,#ff3fa4 78%)'},
   {id:'obj3d',   name:'Objeto 3D',        sw:'radial-gradient(circle at 35% 30%,#fff 0 8%,#ffb3d1 14%,#ff3fa4 45%,#7a1450 75%,#2a2333 76%)'},
   {id:'hockney', name:'Collage',          sw:'conic-gradient(from 20deg,#efebe3 0 25%,#8a8173 0 40%,#d9d2c4 0 62%,#4c5560 0 78%,#efebe3 0)'},
@@ -368,7 +367,6 @@ const PARAMS = {
   echo:    [{k:'copies',label:'Copias',min:2,max:8,v:5},{k:'spacing',label:'Lentitud',min:1,max:10,v:6}],
   stretch: [{k:'up',label:'Alto (estirar / aplastar)',min:-10,max:10,v:5},{k:'side',label:'Ancho (estirar / aplastar)',min:-10,max:10,v:0}],
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
-  light:   [{k:'clear',label:'Borrar dibujo',button:true,act:() => lpClear()},{k:'only',label:'Solo luz que se mueve',toggle:true,v:1},{k:'marker',label:'Mostrar luz detectada',toggle:true,v:1},{k:'thr',label:'Exigencia de luz',min:1,max:10,v:7},{k:'fade',label:'Se borra solo',min:0,max:10,v:0},{k:'bg',label:'Fondo',min:0,max:10,v:7},{k:'glow',label:'Resplandor',min:0,max:10,v:5},{k:'rainbow',label:'Arcoíris',toggle:true,v:0}],
   hockney: [{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
   dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:8},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:5},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:7},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:1}],
   obj3d:   [{k:'spin',label:'Girar solo',toggle:true,v:1},{k:'shadow',label:'Sombra',toggle:true,v:1},{k:'light',label:'Luz de la cámara',toggle:true,v:1},{k:'clear',label:'Borrar todos',button:true,act:() => o3Delete(true)}],
@@ -1265,7 +1263,6 @@ function loop(t){
     case 'echo': echo(t); break;
     case 'stretch': stretch(); break;
     case 'cas': cas(); break;
-    case 'light': lightPaint(t); break;
     case 'hockney': hockney(t); break;
     case 'dm': datamosh(t); break;
     case 'obj3d': obj3d(t); break;
