@@ -249,7 +249,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 #hk-bar[hidden]{display:none}
 #hk-bar .pill{pointer-events:auto;padding:6px 12px;font-size:.8rem;background:rgba(20,18,26,.72);color:#fff;border-color:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #hk-bar .pill:disabled{opacity:.45}
-#hk-mode[aria-pressed="true"]{background:#ff7eb6!important;color:#1c1530!important}
+#hk-bgs{pointer-events:auto;display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:rgba(20,18,26,.72);border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);max-width:100%;overflow-x:auto;scrollbar-width:none}
+#hk-bgs span{font-size:.72rem;color:#fff;margin-right:2px}
+.hk-bg{flex:0 0 auto;width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.5);padding:0;cursor:pointer;position:relative;overflow:hidden}
+.hk-bg[aria-pressed="true"]{border-color:#ff3fa4;box-shadow:0 0 0 2px #fff}
+.hk-bg-pick{background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red)}
+.hk-bg-pick input{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);opacity:0;cursor:pointer;border:0;padding:0}
 #hk-save{background:#ff3fa4!important;border-color:#ff3fa4!important;font-weight:800}
 </style>
 
@@ -317,13 +323,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     </div>
     <div id="o3-ring"></div>
     <div id="hk-bar" hidden>
-      <button class="pill" id="hk-mode" aria-pressed="false">Dedo: mover cámara</button>
       <button class="pill" id="hk-zout" aria-label="Alejar">🔍−</button>
       <button class="pill" id="hk-zlbl" title="Volver a 1x">1,0x</button>
       <button class="pill" id="hk-zin" aria-label="Acercar">🔍+</button>
       <button class="pill" id="hk-undo">↶ Borrar foto</button>
       <button class="pill" id="hk-clear">Empezar de nuevo</button>
       <button class="pill" id="hk-save">💾 Guardar collage</button>
+      <div id="hk-bgs" role="toolbar" aria-label="Fondo"><span>Fondo</span></div>
     </div>
     <div id="of-bar" hidden>
       <div class="of-row" id="of-gamas" role="toolbar" aria-label="Gamas de colores"></div>
@@ -665,7 +671,7 @@ function ensureSegmenter(){
     .catch(e => { console.warn(e); segState = 'failed'; refreshStatus(); });
 }
 function refreshStatus(){
-  if(filter === 'hockney' && !P.hockney.auto) return status(HK.mode === 'pieces' ? 'Arrastra una foto para moverla · 2 dedos: girar y tamaño' : HK.pieces.length ? 'Mueve el celular un poquito y saca la siguiente' : 'Saca una foto: queda pegada donde está el recuadro · esquina rosada: cambiar el recuadro · 2 dedos: zoom');
+  if(filter === 'hockney' && !P.hockney.auto) return status(HK.pieces.length ? 'Arrastra las fotos para moverlas · esquina o rueda: tamaño · 2 dedos: girar' : 'Saca una foto: queda pegada donde está el recuadro · esquina rosada: cambiar el recuadro · 2 dedos: zoom');
   if(filter === 'stop') return status(SM.frames.length ? 'Mueve un poquito y saca el cuadro ' + (SM.frames.length + 1) : 'Saca una foto por cada cuadro. Entre foto y foto mueve un poquito tu objeto');
   if(filter === 'obj3d') return status(O3.objs.length ? (O3.mode === 'rot' ? '1 dedo: girar · 2 dedos: tamaño y giro' : '1 dedo: mover · 2 dedos: tamaño y giro') : 'Escribe un objeto arriba y toca Crear');
   if(filter === 'light') return status('Apunta el flash del celular a la cámara y dibuja');
@@ -2834,12 +2840,12 @@ document.addEventListener('keydown', e => {
 /* ---------- Collage armado a mano (estilo "joiner" de Hockney) ----------
    La cámara se ve en un recuadro sobre un lienzo blanco. Cada foto queda pegada donde estaba el recuadro.
    Si "Se mueve con el celular" está prendido, el recuadro sigue el movimiento del celular (se mide cuánto se corre la imagen). */
-const HK = {pieces:[], x:0, y:0, ww:0, wh:0, zoom:1, ref:null, cur:null, sw:96, sh:72, part:[0, 0], lastHead:-1, mode:'cam', sel:-1, init:false};
+const HK = {pieces:[], x:0, y:0, ww:0, wh:0, zoom:1, ref:null, cur:null, sw:96, sh:72, part:[0, 0], lastHead:-1, sel:-1, selT:0, init:false};
 function hkSetAuto(){ PARAMS.hockney = P.hockney.auto ? PARAMS.hockneyAuto : PARAMS.hockneyHand; buildParams(); hkSync(); refreshStatus(); }
 function hkSync(){
   const on = filter === 'hockney' && !P.hockney.auto, bar = $('#hk-bar'); bar.hidden = !on;
   if(on) view.style.touchAction = 'none';
-  const m = $('#hk-mode'); m.setAttribute('aria-pressed', HK.mode === 'pieces'); m.textContent = HK.mode === 'pieces' ? 'Dedo: mover fotos' : 'Dedo: mover cámara';
+  document.querySelectorAll('#hk-bgs .hk-bg').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === HK.bg || (!b.dataset.v && !HK_BGS.some(([v]) => v === HK.bg))));
   $('#hk-undo').disabled = $('#hk-clear').disabled = $('#hk-save').disabled = !HK.pieces.length;
 }
 const HK_BASE = 0.36;
@@ -2879,10 +2885,13 @@ function hkTrack(){
   else HK.part = [-dx*k, -dy*k];
 }
 function hkClampWin(){ HK.x = clamp(HK.x, 0, W); HK.y = clamp(HK.y, 0, H); }
+// fondo: 'live' = cámara detrás con negro transparente, 'clear' = transparente, o un color
+const HK_BGS = [['live','Negro transparente'],['#000000','Negro'],['#ffffff','Blanco'],['#ff7eb6','Rosado'],['#ff3fa4','Fucsia'],['#ffd23f','Amarillo'],['#ff8a1f','Naranjo'],['#6fd0ff','Celeste'],['#2f6bff','Azul'],['#2ecc5a','Verde'],['#c39bff','Lila'],['#efebe3','Crema']];
+HK.bg = 'live'; try{ const v = localStorage.getItem('flami-collage-fondo'); if(v === 'live' || /^#[0-9a-f]{6}$/i.test(v || '')) HK.bg = v; }catch(e){}
 function hkDrawPieces(ctx, bg){
   if(bg === 'live'){ ctx.drawImage(ago(0), 0, 0); ctx.fillStyle = `rgba(0,0,0,${P.hockney.dark/10})`; ctx.fillRect(0, 0, W, H); }
-  else if(bg === 'black'){ ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
-  HK.pieces.forEach((p, i) => {
+  else if(bg && bg !== 'clear'){ ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H); }
+  HK.pieces.forEach(p => {
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(p.s, p.s);
     ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8; ctx.shadowOffsetY = 2;
     if(P.hockney.border){ const b = Math.max(3, p.w*0.03); ctx.fillStyle = '#fff'; ctx.fillRect(-p.w/2 - b, -p.h/2 - b, p.w + b*2, p.h + b*2); ctx.shadowColor = 'transparent'; }
@@ -2890,34 +2899,40 @@ function hkDrawPieces(ctx, bg){
     ctx.restore();
   });
 }
+// esquina de la foto elegida (sirve para agrandarla o achicarla con el mouse o el dedo)
+function hkPieceCorner(p){ const c = Math.cos(p.r), sn = Math.sin(p.r), lx = p.w/2*p.s, ly = p.h/2*p.s; return [p.x + lx*c - ly*sn, p.y + lx*sn + ly*c]; }
+const hkHS = () => Math.max(14, W*0.026);
+function hkDrawHandle(hx, hy){
+  const hs = hkHS(); vctx.save(); vctx.setLineDash([]); vctx.fillStyle = '#ff3fa4'; vctx.strokeStyle = '#fff'; vctx.lineWidth = 2;
+  vctx.fillRect(hx - hs, hy - hs, hs*2, hs*2); vctx.strokeRect(hx - hs, hy - hs, hs*2, hs*2);
+  vctx.beginPath(); vctx.moveTo(hx - hs*.5, hy + hs*.2); vctx.lineTo(hx + hs*.2, hy - hs*.5); vctx.moveTo(hx - hs*.1, hy + hs*.5); vctx.lineTo(hx + hs*.5, hy - hs*.1); vctx.stroke();
+  vctx.restore();
+}
 function hkHand(t){
   if(!HK.init || HK.W !== W){ HK.init = true; HK.W = W; HK.x = W/2; HK.y = H/2; HK.ww = 0; HK.ref = null; }
   hkTrack();
-  hkDrawPieces(vctx, 'live');
-  if(HK.mode === 'pieces'){
-    const p = HK.pieces[HK.sel];
-    if(p){ vctx.save(); vctx.translate(p.x, p.y); vctx.rotate(p.r); vctx.scale(p.s, p.s); vctx.setLineDash([8, 6]); vctx.strokeStyle = '#ff3fa4'; vctx.lineWidth = 3/p.s; vctx.strokeRect(-p.w/2, -p.h/2, p.w, p.h); vctx.restore(); }
-    return;
+  hkDrawPieces(vctx, HK.bg);
+  // la foto elegida se marca un rato después de tocarla
+  const p = HK.pieces[HK.sel];
+  if(p && performance.now() - HK.selT < 2500){
+    vctx.save(); vctx.translate(p.x, p.y); vctx.rotate(p.r); vctx.scale(p.s, p.s); vctx.setLineDash([8, 6]); vctx.strokeStyle = '#fff'; vctx.lineWidth = 2.5/p.s; vctx.strokeRect(-p.w/2, -p.h/2, p.w, p.h); vctx.restore();
+    const [hx, hy] = hkPieceCorner(p); hkDrawHandle(hx, hy);
   }
   const [ww, wh] = hkWin(), cx = HK.x + HK.part[0], cy = HK.y + HK.part[1];
   vctx.save(); vctx.shadowColor = 'rgba(0,0,0,.35)'; vctx.shadowBlur = 14;
   const [sx, sy, sw, sh] = hkCrop();
   vctx.drawImage(ago(0), sx, sy, sw, sh, cx - ww/2, cy - wh/2, ww, wh); vctx.restore();
-  vctx.save(); vctx.setLineDash([10, 7]); vctx.lineWidth = 3; vctx.strokeStyle = '#ff3fa4'; vctx.strokeRect(cx - ww/2, cy - wh/2, ww, wh);
-  // esquina para cambiar el tamaño y la forma del recuadro
-  const hs = Math.max(14, W*0.026), [hx, hy] = hkHandle(); vctx.setLineDash([]); vctx.fillStyle = '#ff3fa4'; vctx.strokeStyle = '#fff'; vctx.lineWidth = 2;
-  vctx.fillRect(hx - hs, hy - hs, hs*2, hs*2); vctx.strokeRect(hx - hs, hy - hs, hs*2, hs*2);
-  vctx.beginPath(); vctx.moveTo(hx - hs*.5, hy + hs*.2); vctx.lineTo(hx + hs*.2, hy - hs*.5); vctx.moveTo(hx - hs*.1, hy + hs*.5); vctx.lineTo(hx + hs*.5, hy - hs*.1); vctx.stroke();
-  vctx.restore();
+  vctx.save(); vctx.setLineDash([10, 7]); vctx.lineWidth = 3; vctx.strokeStyle = '#ff3fa4'; vctx.strokeRect(cx - ww/2, cy - wh/2, ww, wh); vctx.restore();
+  const [hx, hy] = hkHandle(); hkDrawHandle(hx, hy);
 }
 function hkAdd(){
   if(!W || !count) return;
-  if(HK.mode === 'pieces'){ HK.mode = 'cam'; HK.sel = -1; hkSync(); refreshStatus(); toast('Listo: ahora el dedo mueve la cámara otra vez'); return; }
   const [ww, wh] = hkWin(), [sx, sy, sw, sh] = hkCrop(), q = clamp(sw/ww, 1, 2), c = mk(Math.round(ww*q), Math.round(wh*q));
   c.getContext('2d').drawImage(ago(0), sx, sy, sw, sh, 0, 0, c.width, c.height);
   const tilt = P.hockney.tilt*0.012;
   HK.pieces.push({c, w:ww, h:wh, x:HK.x + HK.part[0], y:HK.y + HK.part[1], r:(Math.random()*2 - 1)*tilt, s:1});
   if(HK.pieces.length > 120) HK.pieces.shift();
+  HK.sel = -1;
   HK.x += HK.part[0]; HK.y += HK.part[1]; HK.part = [0, 0]; HK.ref = null;
   const fl = $('#flash'); fl.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => fl.classList.remove('on')));
   hkSync(); refreshStatus();
@@ -2930,41 +2945,56 @@ function hkHit(x, y){
   }
   return -1;
 }
+function hkInWin(x, y){ const [ww, wh] = hkWin(); return Math.abs(x - HK.x - HK.part[0]) <= ww/2 && Math.abs(y - HK.y - HK.part[1]) <= wh/2; }
+function hkPick(i){ const [pc] = HK.pieces.splice(i, 1); HK.pieces.push(pc); HK.sel = HK.pieces.length - 1; HK.selT = performance.now(); hkSync(); }
+// Qué agarra el dedo o el mouse: esquina del recuadro > esquina de la foto elegida > recuadro de la cámara > una foto pegada
 {
-  const pts = new Map(); let last = null;
+  const pts = new Map(); let last = null, what = null;
   const on = () => filter === 'hockney' && !P.hockney.auto;
   const two = () => { const [a, b] = [...pts.values()]; return {d:Math.hypot(b[0] - a[0], b[1] - a[1]), a:Math.atan2(b[1] - a[1], b[0] - a[0]), m:[(a[0] + b[0])/2, (a[1] + b[1])/2]}; };
+  const near = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < Math.max(26, hkHS()*2.2);
   view.addEventListener('pointerdown', e => {
     if(!on()) return; const p = o3ToCanvas(e); pts.set(e.pointerId, p); try{ view.setPointerCapture(e.pointerId); }catch(err){}
-    if(HK.mode === 'pieces' && pts.size === 1){
-      const i = hkHit(p[0], p[1]);
-      if(i >= 0){ const [pc] = HK.pieces.splice(i, 1); HK.pieces.push(pc); HK.sel = HK.pieces.length - 1; } else HK.sel = -1;
-    }
-    if(HK.mode === 'cam' && pts.size === 1){ const [hx, hy] = hkHandle(); HK.resize = Math.hypot(p[0] - hx, p[1] - hy) < Math.max(28, W*0.06); }
-    if(pts.size >= 2) HK.resize = false;
+    if(pts.size === 1){
+      const sp = HK.pieces[HK.sel], selOn = sp && performance.now() - HK.selT < 2500;
+      if(near(p, hkHandle())) what = 'winsize';
+      else if(selOn && near(p, hkPieceCorner(sp))) what = 'piecesize';
+      else if(hkInWin(p[0], p[1])) what = 'win';
+      else { const i = hkHit(p[0], p[1]); if(i >= 0){ hkPick(i); what = 'piece'; } else what = null; }
+    }else if(what === 'win' || what === 'winsize') what = 'zoom';
+    else if(what === 'piece' || what === 'piecesize') what = 'piece2';
+    else what = HK.pieces[HK.sel] && performance.now() - HK.selT < 2500 ? 'piece2' : 'zoom';
     HK.drag = true; last = pts.size >= 2 ? two() : null;
   });
   view.addEventListener('pointermove', e => {
     if(!on() || !pts.has(e.pointerId)) return;
     const prev = pts.get(e.pointerId), p = o3ToCanvas(e); pts.set(e.pointerId, p);
-    const dx = p[0] - prev[0], dy = p[1] - prev[1];
-    if(HK.mode === 'cam'){
-      if(pts.size >= 2){ const g = two(); if(last) hkZoom((HK.zoom || 1)*g.d/Math.max(1, last.d)); last = g; }
-      else if(HK.resize){ const [ww, wh] = hkWin(), nw = clamp(ww + dx, W*0.08, W), nh = clamp(wh + dy, H*0.08, H); HK.x += (nw - ww)/2; HK.y += (nh - wh)/2; HK.ww = nw; HK.wh = nh; }
-      else { HK.x += dx; HK.y += dy; hkClampWin(); }
-      return;
-    }
-    const pc = HK.pieces[HK.sel]; if(!pc) return;
+    const dx = p[0] - prev[0], dy = p[1] - prev[1], pc = HK.pieces[HK.sel];
     if(pts.size >= 2){
-      const g = two(); if(last){ pc.s = clamp(pc.s*g.d/Math.max(1, last.d), .2, 4); let da = g.a - last.a; if(da > Math.PI) da -= 2*Math.PI; if(da < -Math.PI) da += 2*Math.PI; pc.r += da; pc.x += g.m[0] - last.m[0]; pc.y += g.m[1] - last.m[1]; }
-      last = g;
-    }else{ pc.x += dx; pc.y += dy; }
+      const g = two();
+      if(last){
+        const f = g.d/Math.max(1, last.d);
+        if(what === 'piece2' && pc){ pc.s = clamp(pc.s*f, .2, 4); let da = g.a - last.a; if(da > Math.PI) da -= 2*Math.PI; if(da < -Math.PI) da += 2*Math.PI; pc.r += da; pc.x += g.m[0] - last.m[0]; pc.y += g.m[1] - last.m[1]; HK.selT = performance.now(); }
+        else if(what === 'zoom') hkZoom((HK.zoom || 1)*f);
+      }
+      last = g; return;
+    }
+    if(what === 'winsize'){ const [ww, wh] = hkWin(), nw = clamp(ww + dx, W*0.08, W), nh = clamp(wh + dy, H*0.08, H); HK.x += (nw - ww)/2; HK.y += (nh - wh)/2; HK.ww = nw; HK.wh = nh; }
+    else if(what === 'win'){ HK.x += dx; HK.y += dy; hkClampWin(); }
+    else if(what === 'piece' && pc){ pc.x += dx; pc.y += dy; HK.selT = performance.now(); }
+    else if(what === 'piecesize' && pc){
+      const d0 = Math.hypot(prev[0] - pc.x, prev[1] - pc.y), d1 = Math.hypot(p[0] - pc.x, p[1] - pc.y);
+      if(d0 > 4) pc.s = clamp(pc.s*d1/d0, .2, 4); HK.selT = performance.now();
+    }
   });
-  const up = e => { pts.delete(e.pointerId); last = pts.size >= 2 ? two() : null; if(!pts.size){ HK.drag = false; HK.resize = false; HK.ref = null; } };
+  const up = e => { pts.delete(e.pointerId); last = pts.size >= 2 ? two() : null; if(!pts.size){ HK.drag = false; HK.ref = null; what = null; } };
   for(const ev of ['pointerup', 'pointercancel']) view.addEventListener(ev, up);
+  // rueda del mouse: sobre una foto la agranda o achica (con Shift la gira); en otra parte hace zoom a la cámara
   view.addEventListener('wheel', e => {
-    if(on() && HK.mode === 'cam'){ e.preventDefault(); hkZoom((HK.zoom || 1)*Math.exp(-e.deltaY*.0015)); return; }
-    if(!on() || HK.mode !== 'pieces') return; const pc = HK.pieces[HK.sel]; if(!pc) return; e.preventDefault();
+    if(!on()) return; e.preventDefault();
+    const p = o3ToCanvas(e), i = hkInWin(p[0], p[1]) ? -1 : hkHit(p[0], p[1]);
+    if(i < 0){ hkZoom((HK.zoom || 1)*Math.exp(-e.deltaY*.0015)); return; }
+    if(i !== HK.sel) hkPick(i); const pc = HK.pieces[HK.sel]; HK.selT = performance.now();
     if(e.shiftKey) pc.r += e.deltaY*0.003; else pc.s = clamp(pc.s*Math.exp(-e.deltaY*.0015), .2, 4);
   }, {passive:false});
   for(const ev of ['gesturestart', 'gesturechange']) document.addEventListener(ev, e => { if(on()) e.preventDefault(); });
@@ -2972,33 +3002,40 @@ function hkHit(x, y){
 $('#hk-zin').addEventListener('click', () => hkZoom((HK.zoom || 1)*1.25));
 $('#hk-zout').addEventListener('click', () => hkZoom((HK.zoom || 1)/1.25));
 $('#hk-zlbl').addEventListener('click', () => hkZoom(1));
-$('#hk-mode').addEventListener('click', () => {
-  HK.mode = HK.mode === 'pieces' ? 'cam' : 'pieces';
-  HK.sel = HK.mode === 'pieces' ? HK.pieces.length - 1 : -1; HK.ref = null; hkSync(); refreshStatus();
-  toast(HK.mode === 'pieces' ? 'Ahora el dedo mueve las fotos pegadas' : 'Ahora el dedo mueve el recuadro de la cámara');
-});
+{
+  const box = $('#hk-bgs');
+  for(const [v, name] of HK_BGS){
+    const b = document.createElement('button'); b.className = 'hk-bg'; b.dataset.v = v; b.title = name; b.setAttribute('aria-label', 'Fondo ' + name);
+    b.style.background = v === 'live' ? 'linear-gradient(135deg,rgba(0,0,0,.85) 50%,rgba(255,255,255,.25) 50%)' : v;
+    b.addEventListener('click', () => hkSetBg(v)); box.appendChild(b);
+  }
+  const pick = document.createElement('label'); pick.className = 'hk-bg hk-bg-pick'; pick.title = 'Otro color';
+  pick.innerHTML = '<input type="color" aria-label="Elegir otro color de fondo" value="#ff7eb6">';
+  pick.querySelector('input').addEventListener('input', e => hkSetBg(e.target.value)); box.appendChild(pick);
+}
+function hkSetBg(v){ HK.bg = v; try{ localStorage.setItem('flami-collage-fondo', v); }catch(e){} hkSync(); }
 $('#hk-undo').addEventListener('click', () => {
   if(!HK.pieces.length) return;
-  const i = HK.mode === 'pieces' && HK.sel >= 0 ? HK.sel : HK.pieces.length - 1;
-  HK.pieces.splice(i, 1); HK.sel = Math.min(HK.sel, HK.pieces.length - 1); hkSync(); refreshStatus();
+  const i = HK.sel >= 0 && performance.now() - HK.selT < 2500 ? HK.sel : HK.pieces.length - 1;
+  HK.pieces.splice(i, 1); HK.sel = -1; hkSync(); refreshStatus();
 });
 let hkClearT = 0;
 $('#hk-clear').addEventListener('click', () => {
   const b = $('#hk-clear'), now = performance.now();
   if(now - hkClearT > 3000){ hkClearT = now; b.textContent = '¿Seguro? toca otra vez'; setTimeout(() => { b.textContent = 'Empezar de nuevo'; }, 3000); return; }
   hkClearT = 0; b.textContent = 'Empezar de nuevo';
-  HK.pieces = []; HK.sel = -1; HK.mode = 'cam'; HK.x = W/2; HK.y = H/2; HK.ref = null; hkSync(); refreshStatus();
+  HK.pieces = []; HK.sel = -1; HK.x = W/2; HK.y = H/2; HK.ref = null; hkSync(); refreshStatus();
 });
 $('#hk-save').addEventListener('click', () => {
   if(!HK.pieces.length) return;
-  // se recorta al borde de las fotos (con un margen blanco) y se guarda en la galería
+  // se recorta al borde de las fotos (con un margen) y se guarda en la galería
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for(const p of HK.pieces){ const rr = Math.hypot(p.w, p.h)/2*p.s; x0 = Math.min(x0, p.x - rr); y0 = Math.min(y0, p.y - rr); x1 = Math.max(x1, p.x + rr); y1 = Math.max(y1, p.y + rr); }
   const m = W*0.04; x0 = clamp(x0 - m, 0, W); y0 = clamp(y0 - m, 0, H); x1 = clamp(x1 + m, 0, W); y1 = clamp(y1 + m, 0, H);
   const sc = 2, out = mk(Math.round((x1 - x0)*sc), Math.round((y1 - y0)*sc)), ox = out.getContext('2d');
-  // se dibuja de nuevo al doble de tamaño para que quede más nítido
-  const png = !!P.hockney.png;
-  ox.scale(sc, sc); ox.translate(-x0, -y0); hkDrawPieces(ox, png ? 'clear' : 'black');
+  // con el negro transparente se guarda PNG sin fondo (o negro si se apaga en ajustes); con un color, se guarda con ese color
+  const png = HK.bg === 'live' && !!P.hockney.png, bg = HK.bg === 'live' ? (png ? 'clear' : '#000000') : HK.bg;
+  ox.scale(sc, sc); ox.translate(-x0, -y0); hkDrawPieces(ox, bg);
   out.toBlob(b => {
     if(!b){ toast('No pude guardar el collage'); return; }
     shots.unshift({blob:b, url:URL.createObjectURL(b), name:fileStamp() + (png ? '.png' : '.jpg')});
