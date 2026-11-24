@@ -1,5 +1,5 @@
 // FLAMI CAM (versión definitiva): guarda la app para que abra rápido y funcione sin internet (después de la primera vez).
-const VERSION = 'flami-cam-app-v7';
+const VERSION = 'flami-cam-app-v8';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', '../icons/icon-180.png', '../icons/icon-192.png', '../icons/icon-512.png'];
 
 self.addEventListener('install', e => {
