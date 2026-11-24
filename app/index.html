@@ -986,7 +986,7 @@ function lightPaint(t){
 }
 // Detector de FLASH: solo cuenta una mancha de luz "quemada" (los tres colores al máximo), chica, que no estaba en el fondo,
 // y claramente más brillante que lo que la rodea. Además tiene que aparecer en 2 cuadros seguidos antes de empezar a dibujar.
-let lpVis = null, lpQ = null, lpCand = null, lpDet = null;
+let lpVis = null, lpQ = null, lpCand = null, lpDet = null, lpL = null;
 function lpAnalyze(p, tw, th, u, n){
   if(!lpNew || lpNew.length !== n){ lpNew = new Float32Array(n); }
   if(!lpVis || lpVis.length !== n){ lpVis = new Uint8Array(n); lpQ = new Int32Array(n); }
@@ -996,67 +996,51 @@ function lpAnalyze(p, tw, th, u, n){
   lpHue = (lpHue + 0.6) % 360;
   const h = lpHue/60, c = [0, 0, 0], k = h | 0, f = h - k;
   [[1, f, 0], [1 - f, 1, 0], [0, 1, f], [0, 1 - f, 1], [f, 0, 1], [1, 0, 1 - f]][k % 6].forEach((v, i) => c[i] = v*255);
-  const cut = 226 + p.thr*2.7; // umbral 7 ≈ 245: casi blanco puro en los tres canales
+  // Detección simple: se toma el punto MÁS brillante de la imagen (si es bien brillante) y se dibuja.
   const fresh = !lpBg; if(fresh) lpBg = new Float32Array(n);
-  // Histéresis: para EMPEZAR a dibujar el criterio es estricto; una vez enganchado el flash, se le sigue con un criterio
-  // mucho más relajado cerca de donde estaba, así no se corta la línea
-  const track = !!lpPrev, cutT = track ? cut - 18 : cut, newT = track ? 30 : 45;
-  // dónde debería estar la luz ahora (posición anterior + velocidad) y cuánto se puede alejar de ahí
-  const pred = track ? {x:lpPrev.x + (lpPrev.vx || 0), y:lpPrev.y + (lpPrev.vy || 0)} : null;
-  const reach = track ? Math.min(tw*.14, tw*.05 + Math.hypot(lpPrev.vx || 0, lpPrev.vy || 0)*1.6) : 0;
+  const track = !!lpPrev;
+  let maxL = 0;
+  const L = lpL && lpL.length === n ? lpL : (lpL = new Float32Array(n));
+  for(let j = 0, i = 0; i < n; j += 4, i++){ const l = d[j]*.3 + d[j + 1]*.59 + d[j + 2]*.11; L[i] = l; if(l > maxL) maxL = l; }
+  // "Exigencia de luz" 1..10 → brillo mínimo 190..244
+  const floor = 184 + p.thr*6, thrL = Math.max(floor - (track ? 15 : 0), maxL - 22);
   let changed = 0;
-  for(let j = 0, i = 0; i < n; j += 4, i++){
-    const l = d[j]*.3 + d[j + 1]*.59 + d[j + 2]*.11;
+  for(let i = 0; i < n; i++){
+    const l = L[i];
     if(fresh){ lpBg[i] = l; lpNew[i] = 0; continue; }
-    const bgl = lpBg[i], mn = Math.min(d[j], d[j + 1], d[j + 2]);
-    // el flash quieto no se "aprende" como fondo (si no, se pierde al rato)
-    lpBg[i] = bgl + (l - bgl)*(l > bgl ? (mn >= cutT ? 0.001 : 0.015) : 0.08);
-    if(l - bgl > 45) changed++;
-    lpNew[i] = (mn >= cutT && (!p.only || l - bgl > newT)) ? l : 0;
+    const bgl = lpBg[i];
+    // el fondo se aprende de a poco (las luces quietas de la pieza dejan de contar), pero lo muy brillante casi no se aprende
+    lpBg[i] = bgl + (l - bgl)*(l > bgl ? (l >= thrL ? 0.003 : 0.02) : 0.1);
+    if(Math.abs(l - bgl) > 60) changed++;
+    lpNew[i] = (l >= thrL && (!p.only || l - bgl > 14)) ? l : 0;
   }
-  // si cambió el brillo de media imagen (la cámara ajustó la exposición, alguien prendió la luz), no se dibuja
-  // y el fondo se vuelve a aprender de inmediato
-  if(changed > n*0.06){
-    for(let j = 0, i = 0; i < n; j += 4, i++) lpBg[i] = d[j]*.3 + d[j + 1]*.59 + d[j + 2]*.11;
-    lpNew.fill(0); lpCand = null;
-  }
+  // si cambió de golpe el brillo de casi toda la imagen (la cámara ajustó la exposición), se re-aprende el fondo
+  if(changed > n*0.25){ lpBg.set(L); lpNew.fill(0); lpCand = null; }
   lpVis.fill(0);
-  const maxArea = n*0.005, ref = lpPrev || lpCand;
+  const maxArea = n*0.04, pred = track ? {x:lpPrev.x + (lpPrev.vx || 0), y:lpPrev.y + (lpPrev.vy || 0)} : null;
+  const reach = track ? Math.min(tw*.22, tw*.08 + Math.hypot(lpPrev.vx || 0, lpPrev.vy || 0)*2) : 0;
   let cur = null, bestScore = Infinity, tries = 0;
-  for(let s0 = 0; s0 < n && tries < 12; s0++){
+  for(let s0 = 0; s0 < n && tries < 30; s0++){
     if(!lpNew[s0] || lpVis[s0]) continue;
     tries++;
-    // mancha conectada (relleno por inundación)
-    let qh = 0, qt = 0, area = 0, sx = 0, sy = 0, x0 = tw, x1 = 0, y0 = th, y1 = 0;
+    let qh = 0, qt = 0, area = 0, sx = 0, sy = 0, sl = 0, x0 = tw, x1 = 0, y0 = th, y1 = 0;
     lpQ[qt++] = s0; lpVis[s0] = 1;
     while(qh < qt){
       const i = lpQ[qh++], x = i % tw, y = (i/tw) | 0;
-      area++; sx += x; sy += y; if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y;
-      if(area > maxArea) break;
+      area++; sx += x*lpNew[i]; sy += y*lpNew[i]; sl += lpNew[i]; if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y;
       for(const j of [x > 0 ? i - 1 : -1, x < tw - 1 ? i + 1 : -1, y > 0 ? i - tw : -1, y < th - 1 ? i + tw : -1])
         if(j >= 0 && lpNew[j] && !lpVis[j]){ lpVis[j] = 1; lpQ[qt++] = j; }
     }
-    if(area > maxArea*(track ? 1.4 : 1) || area < (track ? 3 : 4 + p.thr*2)) continue;
-    if(track && lpPrev.area && (area > lpPrev.area*4 + 6 || area*4 + 2 < lpPrev.area)) continue;   // cambió mucho de tamaño: es otra cosa      // muy grande (ventana, pared) o muy chica (brillos de lentes, ojos, metal)
-    const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
-    if(Math.max(bw, bh) > Math.min(bw, bh)*(track ? 6 : 4) + 2) continue;  // muy alargada (borde de algo blanco)
-    // contraste: el anillo alrededor de la mancha tiene que ser bastante más oscuro
-    const rad = Math.max(bw, bh)*1.6 + 3, cx = sx/area, cy = sy/area;
-    let rs = 0, rn = 0, rb = 0;
-    for(let a = 0; a < 16; a++){
-      const xx = Math.round(cx + Math.cos(a*Math.PI/8)*rad), yy = Math.round(cy + Math.sin(a*Math.PI/8)*rad);
-      if(xx < 0 || yy < 0 || xx >= tw || yy >= th) continue;
-      const q = (yy*tw + xx)*4, lq = d[q]*.3 + d[q + 1]*.59 + d[q + 2]*.11; rs += lq; rn++; if(lq > 175) rb++;
-    }
-    if(track && Math.hypot(cx - pred.x, cy - pred.y) > reach) continue;   // saltó lejos: no es el mismo flash
-    if(rn && (rs/rn > (track ? 185 : 150) || rb > (track ? 6 : 3))) continue;   // alrededor tiene que estar oscuro (no es parte de algo grande y blanco)  // alrededor tiene que estar oscuro (no es parte de algo grande y blanco)
-    const score = pred ? Math.hypot(cx - pred.x, cy - pred.y) : ref ? Math.hypot(cx - ref.x, cy - ref.y) : -area;
+    if(area > maxArea || area < 1) continue;   // algo enorme (ventana, pared blanca) no es una luz de mano
+    const cx = sx/sl, cy = sy/sl;
+    if(track && Math.hypot(cx - pred.x, cy - pred.y) > reach) continue;   // muy lejos de donde iba: no es la misma luz
+    // la mejor: si ya se está dibujando, la más cercana a donde iba; si no, la más brillante
+    const score = pred ? Math.hypot(cx - pred.x, cy - pred.y) : -(sl/area + Math.min(area, 30));
     if(score < bestScore){ bestScore = score; cur = {x:cx, y:cy, area, r:Math.max(1.5, Math.sqrt(area/Math.PI)*1.3), col:'rgb(255,250,240)'}; }
   }
-  // tiene que mantenerse varios cuadros seguidos (cerca) para empezar un trazo nuevo
-  const need = 2 + Math.round(p.thr/3);
+  // para empezar basta con verla 2 cuadros seguidos en el mismo lugar (evita destellos sueltos)
   if(cur && !lpPrev){
-    if(lpCand && Math.hypot(cur.x - lpCand.x, cur.y - lpCand.y) < tw*.12){ lpCand = {...cur, n:lpCand.n + 1}; if(lpCand.n < need) cur = null; else lpCand = null; }
+    if(lpCand && Math.hypot(cur.x - lpCand.x, cur.y - lpCand.y) < tw*.15) lpCand = null;
     else { lpCand = {...cur, n:1}; cur = null; }
   }else if(!cur) lpCand = null;
   const det = cur || lpCand; lpDet = det ? {x:det.x/tw, y:det.y/th, r:det.r/tw, on:!!cur, t:performance.now()} : lpDet;
