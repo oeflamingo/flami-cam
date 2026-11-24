@@ -260,7 +260,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 /* ---------- Barras de arriba (PC): al lado del botón de foto, no debajo ---------- */
 #o3-bar,#of-bar,#hk-bar{top:12px;left:calc(max(16px,env(safe-area-inset-left,0px)) + 52px)}
 #app:has(#media-bar:not([hidden])) :is(#o3-bar,#of-bar,#hk-bar){top:64px;left:max(12px,env(safe-area-inset-left,0px))}
-.hk-tools{display:contents}
+.hk-tools,.hk-low,.hk-zoom{display:contents}
+#hk-save{order:1}#hk-bgs{order:2}
 /* Content aware / Estirado: con los ajustes abiertos, los rieles no chocan con el panel */
 #app:has(#params:not([hidden])):has(#st-rails:not([hidden])) #params{left:calc(max(14px,env(safe-area-inset-left,0px)) + 62px)}
 #app:has(#params:not([hidden])) .rail-h{bottom:auto;top:64px}
@@ -272,6 +273,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 #tune-tip::after{content:'';position:absolute;width:12px;height:12px;background:#ff3fa4;transform:rotate(45deg)}
 #tune-tip.left::after{right:-5px;top:calc(50% - 6px)}
 #tune-tip.up::after{bottom:-5px;left:var(--ax,20px)}
+#tune-tip.left{line-height:1.2}
+#hint-pop{position:absolute;z-index:6;left:50%;top:40%;transform:translate(-50%,-50%) scale(.92);background:#ff3fa4;color:#fff;font:700 .95rem/1.25 var(--body);
+  padding:10px 16px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.45);pointer-events:none;opacity:0;transition:opacity .3s,transform .3s;white-space:nowrap}
+#hint-pop.on{opacity:1;transform:translate(-50%,-50%)}
 #tune.hint{animation:tunepulse 1s ease-in-out 3}
 @keyframes tunepulse{50%{box-shadow:0 0 0 6px rgba(255,63,164,.55);border-color:#ff3fa4}}
 @media (prefers-reduced-motion:reduce){#tune-tip{transition:none}#tune.hint{animation:none}}
@@ -332,7 +337,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   #o3-text{font-size:16px;padding:7px 12px}
   #o3-bar .pill,#hk-bar .pill{flex:0 0 auto;padding:5px 10px!important;font-size:.74rem!important}
   #o3-make{padding:5px 14px!important}
-  #hk-bar{flex-direction:column;align-items:flex-start}
+  #hk-bar{flex-direction:column;align-items:flex-start;bottom:44px}
+  /* Collage en el celular: zoom y Guardar abajo, grandes y a mano */
+  .hk-low{order:3;display:flex;margin-top:auto;align-self:stretch;margin-left:-48px;justify-content:center;align-items:center;gap:8px;pointer-events:none}
+  .hk-zoom{display:flex;pointer-events:auto;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.25);background:rgba(20,18,26,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  #hk-bar .hk-zoom .pill{border:0;border-radius:0;background:transparent;padding:9px 10px!important;font-size:.85rem!important}
+  #hk-bar .hk-zoom #hk-zlbl{border-inline:1px solid rgba(255,255,255,.2);min-width:3.6em}
+  #hk-bar #hk-save{flex:0 1 auto;white-space:nowrap;padding:9px 13px!important;font-size:.85rem!important;box-shadow:0 4px 14px rgba(0,0,0,.4)}
   .hk-tools{display:flex;gap:5px;pointer-events:auto}
   #hk-bgs{padding:4px 8px}
   .hk-bg{width:22px;height:22px}
@@ -439,13 +450,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     </div>
     <div id="o3-ring"></div>
     <div id="hk-bar" hidden>
+      <div class="hk-low">
+      <div class="hk-zoom"><button class="pill" id="hk-zout" aria-label="Alejar">🔍−</button><button class="pill" id="hk-zlbl" title="Volver a 1x">1,0x</button><button class="pill" id="hk-zin" aria-label="Acercar">🔍+</button></div>
+      <button class="pill" id="hk-save">💾 Guardar collage</button>
+      </div>
       <div class="hk-tools">
-      <button class="pill" id="hk-zout" aria-label="Alejar">🔍−</button>
-      <button class="pill" id="hk-zlbl" title="Volver a 1x">1,0x</button>
-      <button class="pill" id="hk-zin" aria-label="Acercar">🔍+</button>
       <button class="pill" id="hk-undo">↶ Borrar foto</button>
       <button class="pill" id="hk-clear">Empezar de nuevo</button>
-      <button class="pill" id="hk-save">💾 Guardar collage</button>
       </div>
       <div id="hk-bgs" role="toolbar" aria-label="Fondo"><span>Fondo</span></div>
     </div>
@@ -462,6 +473,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
         <button class="pill" id="of-swap" title="Intercambiar los colores entre sí">🔀 Intercambiar</button>
       </div>
     </div>
+    <div id="hint-pop" aria-live="polite"></div>
     <div id="rec-time" hidden><i></i><span>00:00</span></div>
   </div>
 
@@ -588,7 +600,7 @@ const PARAMS = {
   cas:     [{k:'side',label:'Achicar a los lados',min:0,max:10,v:7},{k:'up',label:'Achicar de alto',min:0,max:10,v:5},{k:'weird',label:'Más caos',min:0,max:10,v:2}],
   hockney: null,
   hockneyAuto: [{k:'auto',label:'Collage automático (el de antes)',toggle:true,v:0},{k:'cols',label:'Fotos',min:3,max:8,v:5},{k:'chaos',label:'Desorden',min:0,max:10,v:5},{k:'delay',label:'Tiempo',min:0,max:30,v:12},{k:'slow',label:'Lentitud',min:0,max:10,v:6},{k:'shuffle',label:'Barajar',button:true}],
-  hockneyHand: [{k:'auto',label:'Collage automático (el de antes)',toggle:true,v:0},{k:'dark',label:'Fondo negro (cuánto tapa la cámara)',min:0,max:10,v:7},{k:'png',label:'Guardar con fondo transparente (PNG)',toggle:true,v:1},{k:'tilt',label:'Chueco',min:0,max:10,v:3},{k:'follow',label:'Se mueve con el celular',toggle:true,v:1},{k:'border',label:'Borde blanco',toggle:true,v:0}],
+  hockneyHand: [{k:'auto',label:'Collage automático (el de antes)',toggle:true,v:0},{k:'dark',label:'Fondo negro (cuánto tapa la cámara)',min:0,max:10,v:7},{k:'png',label:'Guardar con fondo transparente (PNG)',toggle:true,v:1},{k:'tilt',label:'Chueco',min:0,max:10,v:3},{k:'follow',label:'Se mueve con el celular',toggle:true,v:0},{k:'border',label:'Borde blanco',toggle:true,v:0}],
   dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:8},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:5},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:7},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:1}],
   obj3d:   [{k:'spin',label:'Girar solo',toggle:true,v:1},{k:'shadow',label:'Sombra',toggle:true,v:1},{k:'light',label:'Luz de la cámara',toggle:true,v:1},{k:'clear',label:'Borrar todos',button:true,act:() => o3Delete(true)}],
   stop:    [{k:'ghost',label:'Fantasma del cuadro anterior',min:0,max:10,v:4},{k:'auto',label:'Foto sola cada (seg., 0 = no)',min:0,max:10,v:0},{k:'undo',label:'Borrar el último cuadro',button:true,act:() => smUndo()},{k:'edit',label:'🎞️ Ver y guardar',button:true,act:() => smOpen()}],
@@ -790,7 +802,7 @@ function ensureSegmenter(){
     .catch(e => { console.warn(e); segState = 'failed'; refreshStatus(); });
 }
 function refreshStatus(){
-  if(filter === 'hockney' && !P.hockney.auto) return status(HK.pieces.length ? 'Arrastra las fotos para moverlas · esquina o rueda: tamaño · 2 dedos: girar' : 'Saca una foto: queda pegada donde está el recuadro · esquina rosada: cambiar el recuadro · 2 dedos: zoom');
+  if(filter === 'hockney' && !P.hockney.auto) return status(HK.pieces.length ? 'Arrastra las fotos para moverlas · esquina o rueda: tamaño · 2 dedos: girar' : 'Mueve el recuadro con el dedo · saca una foto: queda pegada ahí · esquina rosada: cambiar el recuadro · 2 dedos: zoom');
   if(filter === 'stop') return status(SM.frames.length ? 'Mueve un poquito y saca el cuadro ' + (SM.frames.length + 1) : 'Saca una foto por cada cuadro. Entre foto y foto mueve un poquito tu objeto');
   if(filter === 'obj3d') return status(O3.objs.length ? (O3.mode === 'rot' ? '1 dedo: girar · 2 dedos: tamaño y giro' : '1 dedo: mover · 2 dedos: tamaño y giro') : 'Escribe un objeto arriba y toca Crear');
   if(filter === 'light') return status('Apunta el flash del celular a la cámara y dibuja');
@@ -2539,6 +2551,7 @@ function setFilter(id, announce = true){
   if(id === 'dm') for(const q of PARAMS.dm) if(!q.button) P.dm[q.k] = q.v;   // al entrar, siempre parte con la configuración principal
   o3SyncBar(); smSync(); ofSyncBar(); hkSync(); SM.autoT = performance.now(); buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
   if(announce) setTimeout(showTuneTip, 450);
+  if(announce && id === 'hockney' && !P.hockney.auto) setTimeout(() => showPop('☝️ Mueve el recuadro con el dedo'), 450);
   if(announce){ const el = $('#flt-name'); el.textContent = FILTERS.find(f => f.id === id).name; el.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => el.classList.remove('on'), 700); }
   try{ localStorage.setItem('camara-rara-filtro', id); }catch(e){}
 }
@@ -2579,15 +2592,21 @@ function showTuneTip(){
   const t = $('#tune'), tip = $('#tune-tip');
   hideTuneTip();
   if(t.disabled || t.getAttribute('aria-pressed') === 'true' || !t.offsetParent) return;
-  const r = t.getBoundingClientRect(), W = innerWidth;
-  tip.classList.remove('left', 'up'); tip.style.left = tip.style.top = '';
+  const r = t.getBoundingClientRect();
+  // siempre a la izquierda del botón (en el celular, texto corto para que quepa sin tapar los filtros)
+  const narrow = r.left < 230;
+  tip.textContent = narrow ? 'Ajusta el filtro aquí' : 'Toca aquí para ajustar el filtro';
+  tip.style.maxWidth = narrow ? Math.max(70, r.left - 22) + 'px' : '';
+  tip.classList.remove('up'); tip.classList.add('left'); tip.style.left = tip.style.top = '';
   tip.style.visibility = 'hidden'; tip.classList.add('on'); const tw = tip.offsetWidth, th = tip.offsetHeight;
-  if(r.left > tw + 24){ tip.classList.add('left'); tip.style.left = (r.left - tw - 12) + 'px'; tip.style.top = (r.top + r.height/2 - th/2) + 'px'; }
-  else { tip.classList.add('up'); const x = Math.max(8, Math.min(W - tw - 8, r.left + r.width/2 - 22)); tip.style.left = x + 'px'; tip.style.top = (r.top - th - 12) + 'px'; tip.style.setProperty('--ax', (r.left + r.width/2 - x - 6) + 'px'); }
+  tip.style.left = Math.max(4, r.left - tw - 12) + 'px'; tip.style.top = (r.top + r.height/2 - th/2) + 'px';
   tip.classList.remove('on'); void tip.offsetWidth; tip.style.visibility = '';
   tip.classList.add('on'); t.classList.add('hint');
   tipT = setTimeout(hideTuneTip, 3200);
 }
+/* aviso corto en el medio de la cámara (p. ej. Collage: el recuadro se mueve con el dedo) */
+let popT = 0;
+function showPop(msg){ const el = $('#hint-pop'); el.textContent = msg; el.classList.add('on'); clearTimeout(popT); popT = setTimeout(() => el.classList.remove('on'), 3500); }
 $('#tune').addEventListener('click', () => {
   hideTuneTip();
   const on = $('#tune').getAttribute('aria-pressed') !== 'true';
