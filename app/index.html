@@ -257,9 +257,18 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .hk-bg-pick{background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red)}
 .hk-bg-pick input{position:absolute;inset:-6px;width:calc(100% + 12px);height:calc(100% + 12px);opacity:0;cursor:pointer;border:0;padding:0}
 #hk-save{background:#ff3fa4!important;border-color:#ff3fa4!important;font-weight:800}
+/* ---------- Congelado: una parte queda como foto y el resto sigue en video ---------- */
+#cg-bar{position:absolute;z-index:4;top:64px;left:max(12px,env(safe-area-inset-left,0px));right:12px;display:flex;pointer-events:none}
+#cg-bar[hidden]{display:none}
+.cg-row{display:flex;gap:6px;flex-wrap:wrap;max-width:100%;pointer-events:auto}
+#cg-bar .pill{padding:6px 12px;font-size:.8rem;background:rgba(20,18,26,.72);color:#fff;border-color:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#cg-bar .pill[aria-pressed="true"]{background:#ff7eb6;color:#1c1530;border-color:#ff7eb6;font-weight:700}
+#cg-bar .pill:disabled{opacity:.45}
+#cg-bar #cg-snap{background:#ff3fa4;border-color:#ff3fa4;color:#fff;font-weight:800}
+#cg-bar .pill.del{background:#e5344a;border-color:#ff5a6c}
 /* ---------- Barras de arriba (PC): al lado del botón de foto, no debajo ---------- */
-#o3-bar,#of-bar,#hk-bar{top:12px;left:calc(max(16px,env(safe-area-inset-left,0px)) + 52px)}
-#app:has(#media-bar:not([hidden])) :is(#o3-bar,#of-bar,#hk-bar){top:64px;left:max(12px,env(safe-area-inset-left,0px))}
+#o3-bar,#of-bar,#hk-bar,#cg-bar{top:12px;left:calc(max(16px,env(safe-area-inset-left,0px)) + 52px)}
+#app:has(#media-bar:not([hidden])) :is(#o3-bar,#of-bar,#hk-bar,#cg-bar){top:64px;left:max(12px,env(safe-area-inset-left,0px))}
 .hk-tools,.hk-low,.hk-zoom{display:contents}
 #hk-save{order:1}#hk-bgs{order:2}
 /* Content aware / Estirado: con los ajustes abiertos, los rieles no chocan con el panel */
@@ -333,13 +342,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   #toast{bottom:calc(190px + env(safe-area-inset-bottom,0px))}
   #notice{top:56px;font-size:.8rem}
   /* barras de arriba: compactas, una línea cada una, se deslizan de lado */
-  #o3-bar,#of-bar,#hk-bar{top:8px;left:56px;right:8px;gap:5px}
-  #app:has(#media-bar:not([hidden])) :is(#o3-bar,#of-bar,#hk-bar){top:56px;left:8px}
-  .o3-row,.of-row,.hk-tools,#hk-bgs{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;max-width:100%;box-sizing:border-box}
-  :is(.o3-row,.of-row,.hk-tools,#hk-bgs)::-webkit-scrollbar{display:none}
+  #o3-bar,#of-bar,#hk-bar,#cg-bar{top:8px;left:56px;right:8px;gap:5px}
+  #app:has(#media-bar:not([hidden])) :is(#o3-bar,#of-bar,#hk-bar,#cg-bar){top:56px;left:8px}
+  .o3-row,.of-row,.hk-tools,#hk-bgs,.cg-row{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;max-width:100%;box-sizing:border-box}
+  :is(.o3-row,.of-row,.hk-tools,#hk-bgs,.cg-row)::-webkit-scrollbar{display:none}
   .o3-row:first-child{width:100%}
   #o3-text{font-size:16px;padding:7px 12px}
-  #o3-bar .pill,#hk-bar .pill{flex:0 0 auto;padding:5px 10px!important;font-size:.74rem!important}
+  #o3-bar .pill,#hk-bar .pill,#cg-bar .pill{flex:0 0 auto;padding:5px 10px!important;font-size:.74rem!important}
   #o3-make{padding:5px 14px!important}
   #hk-bar{flex-direction:column;align-items:flex-start;bottom:44px}
   /* Collage en el celular: zoom y Guardar abajo, grandes y a mano */
@@ -464,6 +473,19 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <button class="pill del" id="hk-clear">🗑️ Empezar de nuevo</button>
       </div>
       <div id="hk-bgs" role="toolbar" aria-label="Fondo"><span>Fondo</span></div>
+    </div>
+    <div id="cg-bar" hidden>
+      <div class="cg-row">
+        <button class="pill" id="cg-snap" title="Saca la foto que va a quedar congelada">❄️ Congelar</button>
+        <button class="pill" id="cg-touch" aria-pressed="true" title="Toca a una persona u objeto para dejarlo congelado">☝️ Tocar</button>
+        <button class="pill" id="cg-paint" aria-pressed="false" title="Pinta lo que quieres dejar congelado">🖌️ Pincel</button>
+        <button class="pill" id="cg-erase" aria-pressed="false" title="Borra partes: vuelven a ser video">🧽 Goma</button>
+        <button class="pill" id="cg-size" title="Tamaño del pincel">● Mediano</button>
+        <button class="pill" id="cg-inv" aria-pressed="false" title="Al revés: lo de atrás queda congelado y lo elegido sigue en video">🔄 Al revés</button>
+        <button class="pill" id="cg-undo" title="Deshacer el último cambio">↶ Deshacer</button>
+        <button class="pill" id="cg-done" title="Esconder lo rosado para ver cómo queda">✔ Listo</button>
+        <button class="pill del" id="cg-clear" title="Borrar la foto congelada">🗑️ Borrar foto</button>
+      </div>
     </div>
     <div id="of-bar" hidden>
       <div class="of-row" id="of-gamas" role="toolbar" aria-label="Gamas de colores"></div>
@@ -591,6 +613,7 @@ const FILTERS = [
   {id:'dm',      name:'Datamosh',         sw:'linear-gradient(180deg,#ff3fa4 0 20%,#3fd2ff 20% 34%,#2a2333 34% 48%,#ffd23f 48% 52%,#2a2333 52% 70%,#3fffb2 70% 78%,#ff3fa4 78%)'},
   {id:'obj3d',   name:'Objeto 3D',        sw:'radial-gradient(circle at 35% 30%,#fff 0 8%,#ffb3d1 14%,#ff3fa4 45%,#7a1450 75%,#2a2333 76%)'},
   {id:'stop',    name:'Stop motion',      sw:'linear-gradient(90deg,#2a2333 0 12%,#ffb3d1 12% 30%,#2a2333 30% 36%,#ff7eb6 36% 64%,#2a2333 64% 70%,#ff3fa4 70% 88%,#2a2333 88%)'},
+  {id:'cg',      name:'Congelado',        glyph:'❄', sw:'linear-gradient(90deg,#bfe6ff 0 50%,#ff7eb6 50%)'},
   {id:'hockney', name:'Collage',          sw:'conic-gradient(from 20deg,#efebe3 0 25%,#8a8173 0 40%,#d9d2c4 0 62%,#4c5560 0 78%,#efebe3 0)'},
 ];
 // Fase de prueba (solo la app del celular): window.FLAMI_SOLO lista los efectos que se muestran.
@@ -609,6 +632,7 @@ const PARAMS = {
   dm:      [{k:'back',label:'Mezclar con (tiempo atrás)',min:0,max:10,v:8},{k:'mult',label:'Intensidad',min:1,max:10,v:5},{k:'drag',label:'Repetir movimiento',min:0,max:10,v:5},{k:'resid',label:'Se cuela lo nuevo',min:0,max:10,v:7},{k:'blk',label:'Tamaño de bloque',min:1,max:6,v:3},{k:'auto',label:'Limpiar solo (seg.)',min:0,max:10,v:0},{k:'leak',label:'Recuperar imagen',min:0,max:10,v:0},{k:'smooth',label:'Derretido suave',toggle:true,v:1}],
   obj3d:   [{k:'spin',label:'Girar solo',toggle:true,v:1},{k:'shadow',label:'Sombra',toggle:true,v:1},{k:'light',label:'Luz de la cámara',toggle:true,v:1},{k:'clear',label:'Borrar todos',button:true,act:() => o3Delete(true)}],
   stop:    [{k:'ghost',label:'Fantasma del cuadro anterior',min:0,max:10,v:4},{k:'auto',label:'Foto sola cada (seg., 0 = no)',min:0,max:10,v:0},{k:'undo',label:'Borrar el último cuadro',button:true,act:() => smUndo()},{k:'edit',label:'🎞️ Ver y guardar',button:true,act:() => smOpen()}],
+  cg:      [{k:'count',label:'Cuenta regresiva (seg.)',min:0,max:10,v:3},{k:'feather',label:'Borde suave',min:0,max:10,v:4},{k:'brush',label:'Tamaño del pincel',min:1,max:10,v:5},{k:'inv',label:'Al revés (lo de atrás queda congelado)',toggle:true,v:0},{k:'auto',label:'Congelar a la persona sola',toggle:true,v:1}],
   normal:  []
 };
 PARAMS.hockney = PARAMS.hockneyHand;
@@ -810,6 +834,13 @@ function refreshStatus(){
   if(filter === 'hockney' && !P.hockney.auto) return status(HK.pieces.length ? 'Arrastra las fotos para moverlas · esquina o rueda: tamaño · 2 dedos: girar' : 'Mueve el celular (o el recuadro con el dedo) · saca una foto: queda pegada ahí · esquina rosada: cambiar el recuadro · 2 dedos: zoom');
   if(filter === 'stop') return status(SM.frames.length ? 'Mueve un poquito y saca el cuadro ' + (SM.frames.length + 1) : 'Saca una foto por cada cuadro. Entre foto y foto mueve un poquito tu objeto');
   if(filter === 'obj3d') return status(O3.objs.length ? (O3.mode === 'rot' ? '1 dedo: girar · 2 dedos: tamaño y giro' : '1 dedo: mover · 2 dedos: tamaño y giro') : 'Escribe un objeto arriba y toca Crear');
+  if(filter === 'cg'){
+    if(CG.cdEnd) return status('¡Quieto! ❄️');
+    if(!CG.photo) return status('Saca una foto: lo que elijas queda congelado y el resto sigue en video');
+    if(CG.busy) return status('Recortando…');
+    if(!CG.tool) return status('Graba con el botón de video 🎥 · toca ✏️ Editar para cambiar lo congelado');
+    return status(CG.tool === 'touch' ? 'Toca a una persona u objeto para congelarlo (lo rosado queda como foto)' : CG.tool === 'paint' ? 'Pinta lo que quieres dejar congelado' : 'Borra con el dedo: esa parte vuelve a ser video');
+  }
   if(filter === 'light') return status('Apunta el flash del celular a la cámara y dibuja');
   if((filter === 'dm' || filter === 'dm2')) return status(dmActive() ? '' : 'Mantén apretado MEZCLAR y muévete (un toque lo deja pegado)');
   if(filter === 'offset' && !P.offset.bg){
@@ -1548,6 +1579,7 @@ function loop(t){
     case 'dm': datamosh(t); break;
     case 'obj3d': obj3d(t); break;
     case 'stop': smLive(t); break;
+    case 'cg': cgLive(t); break;
     default: vctx.drawImage(ago(0), 0, 0);
   }
 }
@@ -2554,7 +2586,8 @@ function setFilter(id, announce = true){
   if(id === 'cas') casDrawn = -1;
   dmOn = false; dmHeld = false; dmWas = false;
   if(id === 'dm') for(const q of PARAMS.dm) if(!q.button) P.dm[q.k] = q.v;   // al entrar, siempre parte con la configuración principal
-  o3SyncBar(); smSync(); ofSyncBar(); hkSync(); SM.autoT = performance.now(); buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
+  if(id === 'cg' && P.cg.auto) ensureSegmenter();
+  o3SyncBar(); smSync(); ofSyncBar(); hkSync(); cgSync(); SM.autoT = performance.now(); buildParams(); refreshStatus(); if(typeof syncPal === 'function') try{ syncPal(); syncRails(); }catch(e){}
   if(announce) setTimeout(showTuneTip, 450);
   if(id === 'hockney') try{ gyStart(); }catch(e){}
   clearTimeout(popT); $('#hint-pop').classList.remove('on');
@@ -2690,6 +2723,8 @@ function snap(){
   if(!W) return;
   if(filter === 'stop') return smAdd();
   if(filter === 'hockney' && !P.hockney.auto) return hkAdd();
+  if(filter === 'cg' && !CG.photo) return cgStart();
+  if(filter === 'cg'){ CG.noOv = true; cgLive(performance.now()); CG.noOv = false; }   // la foto sale sin lo rosado
   const fl = $('#flash'); fl.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => fl.classList.remove('on')));
   const name = FILTERS.find(f => f.id === filter).name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, '-');
   const d = new Date(), pad = n => String(n).padStart(2, '0');
@@ -3262,6 +3297,183 @@ $('#hk-save').addEventListener('click', () => {
 });
 
 /* ---------- arranque ---------- */
+
+/* ---------- Congelado: sacas una foto, eliges con una máscara qué parte queda congelada y el resto sigue en video ---------- */
+const CG = {photo:null, mask:null, comp:null, tint:null, small:null, key:'', dirty:true, tool:'touch', busy:false, cdEnd:0, noOv:false, hist:[], cur:null};
+const CG_SIZES = [[2, '● Chico'], [5, '● Mediano'], [9, '● Grande']];
+function cgSync(){
+  const on = filter === 'cg', bar = $('#cg-bar'); if(!bar) return; bar.hidden = !on;
+  if(on) view.style.touchAction = CG.photo ? 'none' : '';
+  const has = !!CG.photo;
+  for(const id of ['cg-touch', 'cg-paint', 'cg-erase', 'cg-inv', 'cg-undo', 'cg-done', 'cg-clear']) $('#' + id).hidden = !has;
+  for(const [id, t] of [['cg-touch', 'touch'], ['cg-paint', 'paint'], ['cg-erase', 'erase']]) $('#' + id).setAttribute('aria-pressed', CG.tool === t);
+  $('#cg-size').hidden = !has || !(CG.tool === 'paint' || CG.tool === 'erase');
+  const sz = CG_SIZES.reduce((a, b) => Math.abs(b[0] - P.cg.brush) < Math.abs(a[0] - P.cg.brush) ? b : a); $('#cg-size').textContent = sz[1];
+  $('#cg-snap').textContent = CG.cdEnd ? '✖ Cancelar' : has ? '❄️ Otra foto' : '❄️ Congelar';
+  $('#cg-done').textContent = CG.tool ? '✔ Listo' : '✏️ Editar';
+  $('#cg-inv').setAttribute('aria-pressed', !!P.cg.inv);
+  $('#cg-undo').disabled = !CG.hist.length;
+}
+function cgReset(){ CG.photo = CG.mask = null; CG.hist = []; CG.tool = 'touch'; CG.cdEnd = 0; CG.dirty = true; cgSync(); refreshStatus(); }
+function cgStart(){
+  if(!W || !count){ toast('La cámara todavía no está lista'); return; }
+  if(CG.cdEnd){ CG.cdEnd = 0; cgSync(); refreshStatus(); return; }   // segundo toque: cancela la cuenta
+  if(P.cg.count > 0){ CG.cdEnd = performance.now() + P.cg.count*1000; cgSync(); refreshStatus(); }
+  else cgFreeze();
+}
+async function cgFreeze(){
+  CG.cdEnd = 0;
+  const fl = $('#flash'); fl.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => fl.classList.remove('on')));
+  const c = mk(W, H); c.getContext('2d').drawImage(ago(0), 0, 0);
+  CG.photo = c; CG.mask = mk(W, H); CG.hist = []; CG.tool = 'touch'; CG.dirty = true;
+  cgSync(); refreshStatus();
+  if(P.cg.auto){
+    status('Buscando a la persona…');
+    const ok = await cgPerson(c);
+    if(CG.photo !== c) return;
+    refreshStatus();
+    showPop(ok ? '❄️ La persona quedó congelada · toca o pinta para cambiarlo' : '☝️ Toca lo que quieres dejar congelado');
+  }else showPop('☝️ Toca lo que quieres dejar congelado');
+}
+// primero se congela a la persona sola (recorte de personas que ya usa Eco/Desfase)
+async function cgPerson(photo){
+  ensureSegmenter();
+  const t0 = performance.now();
+  while(segState === 'loading' && performance.now() - t0 < 20000) await new Promise(r => setTimeout(r, 120));
+  if(segState !== 'ready' || !segmenter || CG.photo !== photo) return false;
+  const sw = 256, sh = Math.max(2, Math.round(256*H/W)), si = mk(sw, sh); si.getContext('2d').drawImage(photo, 0, 0, sw, sh);
+  let mc = null, on = 0;
+  try{
+    segmenter.segmentForVideo(si, nextTs(), res => {
+      const m = res.confidenceMasks && res.confidenceMasks[0]; if(!m) return;
+      const arr = m.getAsFloat32Array(), mw = m.width, mh = m.height;
+      mc = mk(mw, mh); const mx = mc.getContext('2d'), id = mx.createImageData(mw, mh), d = id.data;
+      for(let i = 0, j = 0; i < arr.length; i++, j += 4){ const a = clamp((arr[i] - 0.4)*4, 0, 1); d[j] = d[j+1] = d[j+2] = 255; d[j+3] = a*255; if(a > .5) on++; }
+      mx.putImageData(id, 0, 0); on /= arr.length;
+    });
+  }catch(e){ console.warn(e); return false; }
+  if(!mc || on < 0.02 || CG.photo !== photo) return false;
+  const x = CG.mask.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(mc, 0, 0, W, H); CG.dirty = true;
+  return true;
+}
+function cgPush(){ const c = mk(W, H); c.getContext('2d').drawImage(CG.mask, 0, 0); CG.hist.push(c); if(CG.hist.length > 20) CG.hist.shift(); $('#cg-undo').disabled = false; }
+// tocar: "magic touch" (el mismo de Objeto 3D) recorta lo que tocaste y lo suma a lo congelado
+async function cgTouch(u, v){
+  if(CG.busy) return; CG.busy = true; refreshStatus();
+  const photo = CG.photo;
+  try{
+    const seg = await o3Seg();
+    let conf = null, mw = 0, mh = 0;
+    seg.segment(photo, {keypoint:{x:u, y:v}}, r => { const m = r.confidenceMasks && r.confidenceMasks[0]; if(m){ conf = m.getAsFloat32Array().slice(); mw = m.width; mh = m.height; } });
+    if(!conf) throw new Error('sin máscara');
+    if(CG.photo !== photo) return;
+    const mc = mk(mw, mh), mx = mc.getContext('2d'), id = mx.createImageData(mw, mh), d = id.data; let on = 0;
+    for(let i = 0, j = 0; i < conf.length; i++, j += 4){ const a = clamp((conf[i] - .3)/.4, 0, 1); d[j] = d[j+1] = d[j+2] = 255; d[j+3] = a*255; if(a > .5) on++; }
+    if(on < conf.length*.004){ toast('No encontré nada ahí: toca justo encima o usa el pincel'); return; }
+    mx.putImageData(id, 0, 0);
+    cgPush();
+    const x = CG.mask.getContext('2d'); x.save(); x.globalCompositeOperation = 'source-over'; x.imageSmoothingQuality = 'high'; x.drawImage(mc, 0, 0, W, H); x.restore();
+    CG.dirty = true;
+  }catch(e){ console.warn(e); toast('No pude recortar aquí (necesita internet la primera vez). Usa el pincel 🖌️'); }
+  finally{ CG.busy = false; refreshStatus(); }
+}
+const cgBrush = () => Math.min(W, H)*(0.012 + P.cg.brush*0.011);
+function cgLine(x0, y0, x1, y1){
+  const c = CG.mask.getContext('2d'); c.save();
+  c.globalCompositeOperation = CG.tool === 'erase' ? 'destination-out' : 'source-over';
+  c.strokeStyle = '#fff'; c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = cgBrush();
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1 + .01, y1); c.stroke(); c.restore();
+  CG.dirty = true;
+}
+// máscara con borde suave: con blur si el navegador lo tiene, si no se achica y se agranda (sirve en todos)
+const cgHasFilter = typeof document.createElement('canvas').getContext('2d').filter === 'string';
+function cgSoft(ctx){
+  const f = P.cg.feather;
+  if(f <= 0){ ctx.drawImage(CG.mask, 0, 0); return; }
+  if(cgHasFilter){ ctx.filter = `blur(${(f*Math.min(W, H)/420).toFixed(1)}px)`; ctx.drawImage(CG.mask, 0, 0); ctx.filter = 'none'; return; }
+  const k = 1/(1 + f*0.7), sw = Math.max(2, Math.round(W*k)), sh = Math.max(2, Math.round(H*k));
+  if(!CG.small || CG.small.width !== sw || CG.small.height !== sh) CG.small = mk(sw, sh);
+  const sx = CG.small.getContext('2d'); sx.clearRect(0, 0, sw, sh); sx.imageSmoothingQuality = 'high'; sx.drawImage(CG.mask, 0, 0, sw, sh);
+  ctx.imageSmoothingQuality = 'high'; ctx.drawImage(CG.small, 0, 0, W, H);
+}
+function cgBuild(){
+  const key = P.cg.feather + '|' + P.cg.inv + '|' + W + 'x' + H;
+  if(!CG.dirty && key === CG.key) return; CG.dirty = false; CG.key = key;
+  if(!CG.comp || CG.comp.width !== W || CG.comp.height !== H){ CG.comp = mk(W, H); CG.tint = mk(W, H); }
+  const c = CG.comp.getContext('2d'), t = CG.tint.getContext('2d');
+  c.globalCompositeOperation = t.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, W, H); t.clearRect(0, 0, W, H);
+  if(P.cg.inv){
+    c.drawImage(CG.photo, 0, 0); c.globalCompositeOperation = 'destination-out'; cgSoft(c);
+    t.fillStyle = '#ff3fa4'; t.fillRect(0, 0, W, H); t.globalCompositeOperation = 'destination-out'; cgSoft(t);
+  }else{
+    cgSoft(c); c.globalCompositeOperation = 'source-in'; c.drawImage(CG.photo, 0, 0);
+    cgSoft(t); t.globalCompositeOperation = 'source-in'; t.fillStyle = '#ff3fa4'; t.fillRect(0, 0, W, H);
+  }
+  c.globalCompositeOperation = t.globalCompositeOperation = 'source-over';
+}
+function cgLive(t){
+  vctx.drawImage(ago(0), 0, 0);
+  if(CG.photo && (CG.photo.width !== W || CG.photo.height !== H)) cgReset();
+  if(CG.photo){
+    cgBuild(); vctx.drawImage(CG.comp, 0, 0);
+    const rec = typeof recorder !== 'undefined' && recorder && recorder.state === 'recording';
+    if(CG.tool && !rec && !CG.noOv){
+      vctx.globalAlpha = .32 + .1*Math.sin(t/260); vctx.drawImage(CG.tint, 0, 0); vctx.globalAlpha = 1;
+      const cu = CG.cur;
+      if(cu && (CG.tool === 'paint' || CG.tool === 'erase') && t - cu[2] < 1200){
+        vctx.save(); vctx.lineWidth = Math.max(1.5, W/500); vctx.setLineDash([6, 5]); vctx.strokeStyle = '#fff';
+        vctx.beginPath(); vctx.arc(cu[0], cu[1], cgBrush()/2, 0, 7); vctx.stroke(); vctx.restore();
+      }
+    }
+  }
+  if(CG.cdEnd){
+    const left = CG.cdEnd - performance.now();
+    if(left <= 0) cgFreeze();
+    else if(!CG.noOv){
+      const s = Math.ceil(left/1000), r = Math.min(W, H)*.16, fr = 1 - (left % 1000)/1000;
+      vctx.save(); vctx.fillStyle = 'rgba(0,0,0,.45)'; vctx.beginPath(); vctx.arc(W/2, H/2, r, 0, 7); vctx.fill();
+      vctx.strokeStyle = '#ff3fa4'; vctx.lineWidth = r*.1; vctx.beginPath(); vctx.arc(W/2, H/2, r*.92, -Math.PI/2, -Math.PI/2 + fr*Math.PI*2); vctx.stroke();
+      vctx.fillStyle = '#fff'; vctx.font = `800 ${r*1.1}px system-ui,sans-serif`; vctx.textAlign = 'center'; vctx.textBaseline = 'middle';
+      vctx.fillText(s, W/2, H/2 + r*.05); vctx.restore();
+    }
+  }
+}
+{
+  let drawing = null;
+  view.addEventListener('pointerdown', e => {
+    if(filter !== 'cg' || !CG.photo || !CG.tool) return;
+    e.preventDefault();
+    const [x, y] = o3ToCanvas(e);
+    if(x < 0 || x > W || y < 0 || y > H) return;
+    if(CG.tool === 'touch'){ cgTouch(x/W, y/H); return; }
+    try{ view.setPointerCapture(e.pointerId); }catch(_){}
+    cgPush(); drawing = {id:e.pointerId, x, y}; CG.cur = [x, y, performance.now()]; cgLine(x, y, x, y);
+  });
+  view.addEventListener('pointermove', e => {
+    if(filter !== 'cg' || !CG.photo) return;
+    const [x, y] = o3ToCanvas(e); CG.cur = [x, y, performance.now()];
+    if(!drawing || drawing.id !== e.pointerId) return;
+    cgLine(drawing.x, drawing.y, x, y); drawing.x = x; drawing.y = y;
+  });
+  const up = e => { if(drawing && drawing.id === e.pointerId) drawing = null; };
+  for(const ev of ['pointerup', 'pointercancel']) view.addEventListener(ev, up);
+  const setTool = t => { CG.tool = t; cgSync(); refreshStatus(); };
+  $('#cg-snap').addEventListener('click', cgStart);
+  $('#cg-touch').addEventListener('click', () => setTool('touch'));
+  $('#cg-paint').addEventListener('click', () => setTool('paint'));
+  $('#cg-erase').addEventListener('click', () => setTool('erase'));
+  $('#cg-size').addEventListener('click', () => {
+    const i = CG_SIZES.findIndex(s => s[0] >= P.cg.brush); P.cg.brush = CG_SIZES[(i < 0 ? 0 : i + (CG_SIZES[i][0] === P.cg.brush ? 1 : 0)) % CG_SIZES.length][0];
+    CG.cur = [W/2, H/2, performance.now()]; buildParams(); cgSync();
+  });
+  $('#cg-inv').addEventListener('click', () => { P.cg.inv = P.cg.inv ? 0 : 1; buildParams(); cgSync(); toast(P.cg.inv ? 'Al revés: lo de atrás queda congelado' : 'Lo elegido queda congelado'); });
+  $('#cg-undo').addEventListener('click', () => { const h = CG.hist.pop(); if(!h || !CG.mask) return; const x = CG.mask.getContext('2d'); x.clearRect(0, 0, W, H); x.drawImage(h, 0, 0); CG.dirty = true; cgSync(); });
+  $('#cg-done').addEventListener('click', () => setTool(CG.tool ? null : 'touch'));
+  $('#cg-clear').addEventListener('click', () => { cgReset(); toast('Foto borrada: saca otra'); });
+  // el ajuste "Al revés" también cambia el botón
+  $('#params').addEventListener('change', () => { if(filter === 'cg') cgSync(); });
+}
+
 try{ const saved = localStorage.getItem('camara-rara-filtro'); if(saved === 'iron' || saved === 'rainbow'){ filter = 'thermal'; if(!localStorage.getItem('camara-rara-paleta')) P.thermal.pal = saved; } else if(saved && PARAMS[saved]) filter = saved; }catch(e){}
 if(SOLO && !SOLO.includes(filter)) filter = SOLO[0];
 if(SOLO){ const b = document.createElement('span'); b.className = 'beta'; b.textContent = 'PRUEBA'; document.querySelector('.banner h1').after(b); }
