@@ -605,8 +605,6 @@ const LUTS = {
 /* ---------- filtros y parámetros ---------- */
 const FILTERS = [
   {id:'normal',  name:'Normal',           sw:'linear-gradient(135deg,#d8d3c8,#6d6a73)'},
-  {id:'thermal', name:'Térmica',          sw:'linear-gradient(135deg,#0b0420,#6e0f97 25%,#ef5a1c 45%,#fde14f 50%,#14d046 62%,#00c3ff 80%,#1530ff)'},
-  {id:'offset',  name:'Desfase',          sw:'radial-gradient(circle at 40% 42%,#00a6d6cc 0 30%,transparent 31%),radial-gradient(circle at 58% 46%,#e2007acc 0 30%,transparent 31%),radial-gradient(circle at 48% 60%,#ffd800cc 0 30%,#f4efe4 31%)'},
   {id:'echo',    name:'Eco',              sw:'radial-gradient(circle at 30% 50%,#3a4fd8 0 22%,transparent 23%),radial-gradient(circle at 50% 50%,#3a4fd8aa 0 22%,transparent 23%),radial-gradient(circle at 70% 50%,#3a4fd855 0 22%,#e9e6df 23%)'},
   {id:'stretch', name:'Estirado',         sw:'radial-gradient(ellipse 22% 46% at 50% 45%,#ffb3d1 0 55%,#ff7eb6 56% 70%,#2a2333 71%)'},
   {id:'cas',     name:'Content aware',    sw:'linear-gradient(90deg,#2a2333 0 18%,#f3c9a8 18% 30%,#2a2333 30% 38%,#7fb3d2 38% 70%,#f3c9a8 70% 80%,#2a2333 80%)'},
@@ -618,6 +616,7 @@ const FILTERS = [
 ];
 // Fase de prueba (solo la app del celular): window.FLAMI_SOLO lista los efectos que se muestran.
 // Los demás siguen en el código, solo quedan ocultos. Para volver a mostrar todos, se quita esa línea en build.sh.
+// Térmica y Desfase (26 nov 2026) y Luz: borrados del menú por pedido de flami; su código sigue aquí pero sin botón.
 const SOLO = Array.isArray(window.FLAMI_SOLO) ? window.FLAMI_SOLO : null;
 if(SOLO){ for(let i = FILTERS.length - 1; i >= 0; i--) if(!SOLO.includes(FILTERS[i].id)) FILTERS.splice(i, 1); }
 const PARAMS = {
@@ -639,7 +638,7 @@ PARAMS.hockney = PARAMS.hockneyHand;
 const P = {thermal:{pal:'iron'}, hockney:{}};
 for(const f of ['hockneyAuto', 'hockneyHand']){ for(const p of PARAMS[f]) if(!p.button) P.hockney[p.k] = p.v; }
 for(const f in PARAMS){ if(!P[f]) P[f] = {}; for(const p of PARAMS[f]) if(!p.button) P[f][p.k] = p.v; }
-let filter = 'thermal';
+let filter = 'normal';
 
 /* ---------- fuente: cámara, video o demo ---------- */
 const video = document.createElement('video');
@@ -3474,7 +3473,7 @@ function cgLive(t){
   $('#params').addEventListener('change', () => { if(filter === 'cg') cgSync(); });
 }
 
-try{ const saved = localStorage.getItem('camara-rara-filtro'); if(saved === 'iron' || saved === 'rainbow'){ filter = 'thermal'; if(!localStorage.getItem('camara-rara-paleta')) P.thermal.pal = saved; } else if(saved && PARAMS[saved]) filter = saved; }catch(e){}
+try{ const saved = localStorage.getItem('camara-rara-filtro'); if(saved && PARAMS[saved] && FILTERS.some(f => f.id === saved)) filter = saved; }catch(e){}
 if(SOLO && !SOLO.includes(filter)) filter = SOLO[0];
 if(SOLO){ const b = document.createElement('span'); b.className = 'beta'; b.textContent = 'PRUEBA'; document.querySelector('.banner h1').after(b); }
 setFilter(filter, false);
